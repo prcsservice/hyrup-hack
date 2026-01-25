@@ -1,26 +1,540 @@
 @import "tailwindcss";
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   FIXFORWARD DESIGN SYSTEM v2.0
+   Reference: design.md v2.0 — Editorial / Grid-First / System-Driven
+   
+   Keywords: Grid-first, Architectural, Sharp-edged, Editorial, Civic-tech,
+             System UI, Wireframe, Manifesto, Brutalist, Scroll-driven
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   THEME TOKENS — design.md §2
+   ───────────────────────────────────────────────────────────────────────────── */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Dark Theme Backgrounds (Noir) */
+  --bg-primary: #050505;
+  --bg-secondary: #0A0A0A;
+  --bg-tertiary: #111111;
+  
+  /* Grid Overlay - 6% opacity, visible structural rails */
+  --grid-line: rgba(255, 255, 255, 0.06);
+  --grid-line-strong: rgba(255, 255, 255, 0.12);
+  
+  /* Lines & Strokes */
+  --stroke-primary: #2A2F36;
+  --stroke-secondary: #353B44;
+  --stroke-divider: rgba(255, 255, 255, 0.06);
+  
+  /* Text */
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.65);
+  --text-muted: rgba(255, 255, 255, 0.4);
+  
+  /* Accent Colors — ONE per page only (design.md §3) */
+  --accent-green: #2DFF6A;
+  --accent-blue: #2979FF; /* Electric Blue / Cobalt */
+  --accent-yellow: #F4C430;
+  --accent-red: #FF3D3D;
+  
+  /* Current page accent (FixForward Orange) */
+  --accent: #FF4D00;
+  
+  /* Typography — design.md §4 */
+  --font-display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  --font-body: 'Inter', 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'IBM Plex Mono', monospace;
+  
+  /* Type Scale */
+  --text-hero: clamp(2.5rem, 5vw, 4.5rem);
+  --text-section: clamp(2rem, 4vw, 3.5rem);
+  --text-manifesto: clamp(1.25rem, 2vw, 1.75rem);
+  --text-body: clamp(0.875rem, 0.9vw, 1rem);
+  --text-meta: 0.75rem;
+  
+  /* Spacing - 8px baseline rhythm */
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2rem;
+  --space-6: 3rem;
+  --space-8: 4rem;
+  --space-12: 6rem;
+  --space-16: 8rem;
+  --space-24: 12rem;
+  
+  /* Grid */
+  --container-max: 1440px;
+  --container-padding: clamp(1.5rem, 5vw, 6rem);
+  --grid-gap: clamp(1rem, 2vw, 2rem);
+  
+  /* Radius - 0-2px only (design.md §6) */
+  --radius-none: 0px;
+  --radius-sm: 2px;
+  
+  /* Durations — animation.md §2 */
+  --duration-ui: 160ms;
+  --duration-divider: 320ms;
+  --duration-route: 750ms;
+  --duration-modal: 250ms;
+  
+  /* Easing */
+  --ease-primary: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out: cubic-bezier(0.33, 1, 0.68, 1);
 }
+
+/* Light Theme — design.md §2 */
+[data-theme="light"] {
+  --bg-primary: #FAFAFA;
+  --bg-secondary: #FFFFFF;
+  --bg-tertiary: #F1F3F5;
+  
+  --grid-line: rgba(0, 0, 0, 0.04);
+  --grid-line-strong: rgba(0, 0, 0, 0.08);
+  
+  --stroke-primary: #D6DAE0;
+  --stroke-secondary: #E5E7EB;
+  --stroke-divider: rgba(0, 0, 0, 0.08);
+  
+  --text-primary: #0B0E11;
+  --text-secondary: rgba(11, 14, 17, 0.7);
+  --text-muted: rgba(11, 14, 17, 0.45);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   TAILWIND THEME
+   ───────────────────────────────────────────────────────────────────────────── */
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-tertiary: var(--bg-tertiary);
+  --color-stroke: var(--stroke-primary);
+  --color-stroke-divider: var(--stroke-divider);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-accent: var(--accent);
+  --color-accent-green: var(--accent-green);
+  --color-accent-blue: var(--accent-blue);
+  --color-accent-yellow: var(--accent-yellow);
+  --color-accent-red: var(--accent-red);
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
+  --font-mono: var(--font-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ─────────────────────────────────────────────────────────────────────────────
+   BASE STYLES
+   ───────────────────────────────────────────────────────────────────────────── */
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* Lenis smooth scroll */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   TYPOGRAPHY — design.md §4
+   Tight tracking, uppercase labels, numeric emphasis, strong left alignment
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.text-hero {
+  font-family: var(--font-display);
+  font-size: var(--text-hero);
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+}
+
+.text-section {
+  font-family: var(--font-display);
+  font-size: var(--text-section);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+}
+
+.text-manifesto {
+  font-family: var(--font-display);
+  font-size: var(--text-manifesto);
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+}
+
+.text-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.text-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   GRID SYSTEM — design.md §5
+   12 column desktop, 6 tablet, 4 mobile, visible vertical rails
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--container-padding);
+  padding-right: var(--container-padding);
+}
+
+/* Visible grid overlay */
+.grid-rails {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.grid-rails::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: calc((100% - var(--container-padding) * 2) / 12) 100%;
+  background-position: var(--container-padding) 0;
+}
+
+/* Horizontal rules */
+.grid-horizontal {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: linear-gradient(var(--grid-line) 1px, transparent 1px);
+  background-size: 100% 8rem;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SECTION SYSTEM — layout.md §5
+   Each section is a chapter, framed by horizontal rules
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.section {
+  position: relative;
+  border-top: 1px solid var(--stroke-divider);
+}
+
+.section-header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-4);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--stroke-divider);
+}
+
+.section-number {
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: var(--accent);
+  letter-spacing: 0.1em;
+}
+
+.section-content {
+  padding: var(--space-16) 0;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   DIVIDERS — design.md §7
+   1px horizontal rules, dotted rails, coordinate ticks
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.divider {
+  height: 1px;
+  background: var(--stroke-divider);
+}
+
+.divider-dotted {
+  height: 1px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--stroke-primary) 0 4px,
+    transparent 4px 12px
+  );
+}
+
+.divider-ticks {
+  display: flex;
+  align-items: flex-end;
+  gap: 2rem;
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--stroke-divider);
+}
+
+.divider-ticks::before {
+  content: '';
+  flex: 1;
+  height: 8px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--stroke-primary) 0 1px,
+    transparent 1px 8px
+  );
+}
+
+/* Vertical spine */
+.spine-vertical {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  background: var(--stroke-divider);
+  transform: translateX(-50%);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SURFACES & CONTAINERS — design.md §6
+   Flat fills, 0-2px radius, 1px inset borders, no glass/blur/gradients
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.surface {
+  background: var(--bg-secondary);
+  border: 1px solid var(--stroke-divider);
+}
+
+.surface-inset {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--stroke-divider);
+  box-shadow: inset 0 1px 0 var(--stroke-divider);
+}
+
+.panel {
+  background: var(--bg-secondary);
+  border: 1px solid var(--stroke-primary);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   BUTTONS — design.md §10
+   Flat accent fill, square corners, no shadow, underline on hover
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.5rem;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  letter-spacing: 0.01em;
+  border: none;
+  cursor: pointer;
+  transition: all var(--duration-ui) var(--ease-primary);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--bg-primary);
+}
+
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--bg-primary);
+  transition: width var(--duration-ui) var(--ease-primary);
+}
+
+.btn-primary:hover::after {
+  width: 100%;
+}
+
+.btn-primary:active {
+  transform: scale(0.96);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--stroke-primary);
+}
+
+.btn-secondary:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-secondary:active {
+  transform: scale(0.96);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   HOVER INTERACTIONS — animation.md §9
+   Restrained: border thickens, underline slides, stroke brightens
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.hover-underline {
+  position: relative;
+}
+
+.hover-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: var(--accent);
+  transition: width var(--duration-ui) var(--ease-primary);
+}
+
+.hover-underline:hover::after {
+  width: 100%;
+}
+
+.hover-border {
+  border: 1px solid var(--stroke-divider);
+  transition: border-color var(--duration-ui) var(--ease-primary);
+}
+
+.hover-border:hover {
+  border-color: var(--stroke-primary);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   NOISE & TEXTURE — design.md §15
+   Subtle grain, CRT noise overlays, scanline masks, grid shimmer
+   NO bloom, glow shadows, blur cards, glass UI
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.noise-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.scanlines {
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0 2px,
+    rgba(0, 0, 0, 0.03) 2px 4px
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   COUNTDOWN & DATA — design.md §4 (Mono for Data/Timers)
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.countdown-block {
+  display: flex;
+  gap: 2px;
+}
+
+.countdown-digit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 4rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--stroke-divider);
+  font-family: var(--font-mono);
+  font-size: 1.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.countdown-separator {
+  display: flex;
+  align-items: center;
+  padding: 0 0.25rem;
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  color: var(--text-muted);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   FOCUS & ACCESSIBILITY — design.md §16
+   Visible focus rails, keyboard navigation
+   ───────────────────────────────────────────────────────────────────────────── */
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--bg-primary);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   REDUCED MOTION — animation.md §19
+   Disables pinning, replaces wipes with fades, removes geometry morphing
+   ───────────────────────────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SCROLLBAR
+   ───────────────────────────────────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--stroke-primary);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
 }

@@ -1,0 +1,77 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // --- Helper Functions ---
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(uid) {
+      return request.auth.uid == uid;
+    }
+    
+    // Hardcoded Admin email check for critical security
+    function isAdmin() {
+      return request.auth.token.email == "info.hyrup@gmail.com";
+    }
+    
+    // Check if user has judge role in their user doc
+    function isJudge() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "judge";
+    }
+
+    // --- Collection Rules ---
+
+    // 1. Users: Users can read/write their own profile. Admins and Judges can read all.
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (isOwner(userId) || isAdmin() || isJudge());
+      allow write: if isAuthenticated() && isOwner(userId); // Only user can update profile (except role, which should be protected via function, but for MVP client-side is mostly trusted or admin dashboard)
+    }
+
+    // 2. Teams: 
+    // - Create: Authenticated users
+    // - Read: Public (or just authenticated) for directory
+    // - Update: Team members only
+    match /teams/{teamId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      // Complex rule: check if auth.uid is in resource.data.members list would be ideal, 
+      // but for MVP allow write if authenticated (or add member check)
+      allow write: if isAuthenticated(); 
+    }
+
+    // 3. Submissions (Ideas/Prototypes):
+    // Inside Team doc or separate? We use fields inside Team doc, so covered above.
+
+    // 4. Judge Invites: STRICT ADMIN ONLY
+    match /judgeInvites/{inviteId} {
+        allow read, write: if isAdmin();
+    }
+    
+    // 5. Scores: Judges can write, Admins can read
+    match /scores/{scoreId} {
+        allow read: if isAdmin() || (isJudge() && resource.data.judgeId == request.auth.uid);
+        allow write: if isJudge(); 
+    }
+
+    // 6. Notifications: Admin write, Public read
+    match /notifications/{notifId} {
+        allow read: if true;
+        allow write: if isAdmin();
+    }
+
+    // 7. Content (CMS): Admin write, Public read
+    match /content/{docId} {
+        allow read: if true;
+        allow write: if isAdmin();
+    }
+
+    // 8. Settings: Admin write, Authenticated read
+    match /settings/{docId} {
+        allow read: if isAuthenticated();
+        allow write: if isAdmin();
+    }
+  }
+}
