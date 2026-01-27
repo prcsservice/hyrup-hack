@@ -40,7 +40,7 @@ const INITIAL_DATA: SubmissionData = {
 };
 
 export function SubmissionProvider({ children }: { children: ReactNode }) {
-    const { team, submitIdea } = useTeam();
+    const { team, submitIdea, saveSubmission } = useTeam();
     const { user } = useAuth();
     const { showToast } = useToast();
 
@@ -48,34 +48,66 @@ export function SubmissionProvider({ children }: { children: ReactNode }) {
     const [step, setStep] = useState(1);
     const [status, setStatus] = useState<'draft' | 'saving' | 'saved' | 'submitted'>('draft');
 
-    // TODO: Load existing draft from Firestore on mount
-    // useEffect(() => {
-    //   if (team?.id) { ... fetch doc ... }
-    // }, [team?.id]);
+    // Track if we have initialized data from the team doc
+    const initialized = useState(false); // Using state to force re-render if needed, or ref if not. Actually simple boolean ref is fine but strict mode double effect might be annoying.
+    // Let's use a standard pattern:
+    const [isLoaded, setIsLoaded] = useState(false);
 
-    // Debounced Autosave Simulation
     useEffect(() => {
-        if (status === 'submitted') return;
+        if (team && !isLoaded) {
+            // Check if team has any relevant data to load
+            const hasData = team.problemStatement || team.problemEvidence || team.solutionOverview || team.domain;
+
+            if (hasData || team.submissionStatus === 'submitted') {
+                setData({
+                    problemStatement: team.problemStatement || "",
+                    problemEvidence: team.problemEvidence || "",
+                    solutionOverview: team.solutionOverview || "",
+                    domain: team.domain || "",
+                    targetAudience: team.targetAudience || "",
+                    impactStats: team.impactStats || "",
+                    fileUrls: team.fileUrls || [],
+                    evidenceFileUrl: team.evidenceFileUrl
+                });
+
+                if (team.submissionStatus === 'submitted') {
+                    setStatus('submitted');
+                    setStep(4); // Jump to review
+                } else {
+                    setStatus('saved');
+                }
+            }
+            setIsLoaded(true);
+        }
+    }, [team, isLoaded]);
+
+    // Debounced Autosave
+    useEffect(() => {
+        if (status === 'submitted' || !isLoaded) return;
+        // Don't save if data is empty/initial to avoid overwriting DB with empty state on race condition
+        // But if user clears field, we SHOULD save.
+        // The isLoaded check ensures we don't save BEFORE we've loaded existing data.
 
         const timer = setTimeout(() => {
             if (status === 'draft') {
+                console.log("Autosave triggering...", data);
                 setStatus('saving');
-                // Mock DB write delay
-                setTimeout(() => {
-                    console.log("Auto-saved to Firestore:", data);
+                saveSubmission(data).then(() => {
+                    console.log("Auto-saved to Firestore");
                     setStatus('saved');
-                }, 800);
+                }).catch(err => {
+                    console.error("Autosave failed", err);
+                    setStatus('draft'); // Retry?
+                });
             }
         }, 2000);
 
         return () => clearTimeout(timer);
-    }, [data, status]);
+    }, [data, status, isLoaded, saveSubmission]);
 
     const updateData = (updates: Partial<SubmissionData>) => {
         setData(prev => ({ ...prev, ...updates }));
-        // If it was submitted, we don't revert to draft immediately, 
-        // we just let them edit. The save button will effectively be an "Update" button.
-        // if (status !== 'submitted') setStatus('draft'); 
+        if (status !== 'submitted') setStatus('draft'); // Mark as needs saving
     };
 
     const submit = async (onSuccess?: () => void) => {
@@ -87,9 +119,7 @@ export function SubmissionProvider({ children }: { children: ReactNode }) {
         setStatus('saving');
 
         try {
-            await submitIdea(); // Updates Firestore
-            // await new Promise(r => setTimeout(r, 1500)); // Mock submit removed
-
+            await submitIdea(data); // Updates Firestore with data + status
             setStatus('submitted');
             showToast("Submission Received! Good luck.", "success");
 

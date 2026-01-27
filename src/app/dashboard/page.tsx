@@ -140,7 +140,7 @@ function DashboardContent() {
                                                 </div>
                                                 <div className="mt-4 pt-4 border-t border-stroke-divider flex justify-between items-center">
                                                     <span className="text-xs font-mono text-green-500">RECEIVED</span>
-                                                    <Button size="sm" variant="secondary" className="rounded-full h-8 text-xs cursor-default hover:bg-bg-tertiary">
+                                                    <Button size="sm" variant="secondary" onClick={() => router.push('/submit/idea')} className="rounded-full h-8 text-xs hover:bg-bg-tertiary">
                                                         View <ArrowRight size={12} className="ml-1" />
                                                     </Button>
                                                 </div>

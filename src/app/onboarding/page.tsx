@@ -7,26 +7,50 @@ import { doc, updateDoc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/context/ToastContext";
-import { User, Smartphone, GraduationCap, ArrowRight } from "lucide-react";
+import { User, Smartphone, GraduationCap, ArrowRight, Mail } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+
+// Form Schema
+const profileSchema = z.object({
+    displayName: z.string().min(2, "Name must be at least 2 characters"),
+    email: z.string().email("Invalid email address"),
+    university: z.string().min(2, "University name is required"),
+    phoneNumber: z.string().min(10, "Phone number must be at least 10 digits"),
+});
+
+type ProfileFormValues = z.infer<typeof profileSchema>;
 
 export default function OnboardingPage() {
     const { user, loading } = useAuth();
     const router = useRouter();
     const searchParams = useSearchParams();
     const { showToast } = useToast();
+
+    // States
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Form Data
-    const [name, setName] = useState("");
-    const [university, setUniversity] = useState("");
-    const [phone, setPhone] = useState("");
+    // Form
+    const { register, handleSubmit, setValue, formState: { errors } } = useForm<ProfileFormValues>({
+        resolver: zodResolver(profileSchema),
+        defaultValues: {
+            displayName: "",
+            email: "",
+            university: "",
+            phoneNumber: "",
+        }
+    });
 
-    // Pre-fill if Google Auth provided name
+    // Pre-fill Data
     useEffect(() => {
-        if (user?.displayName) setName(user.displayName);
-    }, [user]);
+        if (user) {
+            setValue("displayName", user.displayName || "");
+            setValue("email", user.email || "");
+        }
+    }, [user, setValue]);
 
-    // Check if ALREADY onboarded, then skip
+    // Check if ALREADY onboarded
     useEffect(() => {
         const checkProfile = async () => {
             if (!user) return;
@@ -34,9 +58,7 @@ export default function OnboardingPage() {
             const snap = await getDoc(docRef);
             if (snap.exists()) {
                 const data = snap.data();
-                // If university is already set, they are "onboarded"
-                if (data.university) {
-                    // Check for invite redirect
+                if (data.onboarded) {
                     const inviteCode = localStorage.getItem('inviteCode');
                     if (inviteCode) {
                         router.push(`/team/join?code=${inviteCode}`);
@@ -49,27 +71,33 @@ export default function OnboardingPage() {
         if (!loading && user) checkProfile();
     }, [user, loading, router]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const onSubmit = async (data: ProfileFormValues) => {
         if (!user) return;
+
         setIsSubmitting(true);
 
         try {
+            // Format phone number
+            let phone = data.phoneNumber.replace(/[\s\-\(\)]/g, "");
+            if (!phone.startsWith('+')) {
+                phone = `+91${phone}`;
+            }
+
             await updateDoc(doc(db, "users", user.uid), {
-                displayName: name,
-                university: university,
-                phoneNumber: phone, // Optional usually, but good for hackathons
+                displayName: data.displayName,
+                email: data.email,
+                university: data.university,
+                phoneNumber: phone,
                 onboarded: true,
                 updatedAt: new Date()
             });
 
             showToast("Profile Initialized", "success");
 
-            // Handle Pending Invites (from LocalStorage or URL)
+            // Handle Pending Invites
             const inviteCode = localStorage.getItem('inviteCode') || searchParams?.get('next');
             if (inviteCode) {
-                localStorage.removeItem('inviteCode'); // clean up
-                // If it's a code, go to join. If it's a path, go there.
+                localStorage.removeItem('inviteCode');
                 if (inviteCode.startsWith('/')) {
                     router.push(inviteCode);
                 } else {
@@ -97,45 +125,58 @@ export default function OnboardingPage() {
                     <p className="text-text-secondary">Let's set up your hacker profile.</p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="bg-bg-secondary border border-stroke-primary p-8 rounded-sm space-y-6">
+                <form onSubmit={handleSubmit(onSubmit)} className="bg-bg-secondary border border-stroke-primary p-8 rounded-sm space-y-6">
 
+                    {/* Full Name */}
                     <div className="space-y-2">
                         <label className="text-sm font-mono text-text-muted uppercase flex items-center gap-2">
                             <User size={14} /> Full Name
                         </label>
                         <input
-                            required
+                            {...register("displayName")}
                             className="w-full bg-bg-tertiary border border-stroke-primary p-3 rounded-sm focus:border-accent outline-none text-white text-sm"
                             placeholder="e.g. Aditi Sharma"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
                         />
+                        {errors.displayName && <p className="text-red-500 text-xs">{errors.displayName.message}</p>}
                     </div>
 
+                    {/* Email */}
+                    <div className="space-y-2">
+                        <label className="text-sm font-mono text-text-muted uppercase flex items-center gap-2">
+                            <Mail size={14} /> Email Address
+                        </label>
+                        <input
+                            {...register("email")}
+                            readOnly
+                            className="w-full bg-bg-tertiary border border-stroke-primary p-3 rounded-sm focus:border-accent outline-none text-white text-sm opacity-70 cursor-not-allowed"
+                        />
+                        {errors.email && <p className="text-red-500 text-xs">{errors.email.message}</p>}
+                    </div>
+
+                    {/* University */}
                     <div className="space-y-2">
                         <label className="text-sm font-mono text-text-muted uppercase flex items-center gap-2">
                             <GraduationCap size={14} /> University / College
                         </label>
                         <input
-                            required
+                            {...register("university")}
                             className="w-full bg-bg-tertiary border border-stroke-primary p-3 rounded-sm focus:border-accent outline-none text-white text-sm"
                             placeholder="e.g. IIT Bombay"
-                            value={university}
-                            onChange={(e) => setUniversity(e.target.value)}
                         />
+                        {errors.university && <p className="text-red-500 text-xs">{errors.university.message}</p>}
                     </div>
 
+                    {/* Phone Number */}
                     <div className="space-y-2">
                         <label className="text-sm font-mono text-text-muted uppercase flex items-center gap-2">
-                            <Smartphone size={14} /> WhatsApp Number <span className="text-text-muted normal-case">(Optional)</span>
+                            <Smartphone size={14} /> Phone Number
                         </label>
                         <input
-                            type="tel"
+                            {...register("phoneNumber")}
                             className="w-full bg-bg-tertiary border border-stroke-primary p-3 rounded-sm focus:border-accent outline-none text-white text-sm"
-                            placeholder="+91 98765 43210"
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
+                            placeholder="+919876543210"
                         />
+                        {errors.phoneNumber && <p className="text-red-500 text-xs">{errors.phoneNumber.message}</p>}
                         <p className="text-[10px] text-text-muted">Used only for urgent hackathon updates.</p>
                     </div>
 

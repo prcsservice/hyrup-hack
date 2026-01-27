@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import {
     collection,
     doc,
@@ -35,6 +35,16 @@ export interface Team {
         emoji: string;
     };
     submissionStatus?: 'pending' | 'submitted';
+    // Submission Data (Phase 1)
+    problemStatement?: string;
+    problemEvidence?: string;
+    solutionOverview?: string;
+    domain?: string;
+    targetAudience?: string;
+    impactStats?: string;
+    fileUrls?: string[];
+    evidenceFileUrl?: string;
+
     positions?: { [uid: string]: string }; // Map UID -> Role (e.g. "Frontend Dev")
     pitchSlotId?: string; // Phase 7
     shortlisted?: boolean; // Phase 7
@@ -57,7 +67,8 @@ export interface TeamContextType {
     leaveTeam: () => Promise<void>;
     searchTeams: (queryStr: string) => Promise<Team[]>;
     checkTeamName: (name: string) => Promise<boolean>;
-    submitIdea: () => Promise<void>;
+    saveSubmission: (data: Partial<Team>) => Promise<void>;
+    submitIdea: (data?: Partial<Team>) => Promise<void>;
     submitPrototype: (data: any) => Promise<void>;
 }
 
@@ -69,6 +80,7 @@ const TeamContext = createContext<TeamContextType>({
     leaveTeam: async () => { },
     searchTeams: async () => [],
     checkTeamName: async () => false,
+    saveSubmission: async () => { },
     submitIdea: async () => { },
     submitPrototype: async () => { },
 });
@@ -122,13 +134,13 @@ export function TeamProvider({ children }: { children: React.ReactNode }) {
         return code;
     };
 
-    const checkTeamName = async (name: string) => {
+    const checkTeamName = useCallback(async (name: string) => {
         const q = query(collection(db, "teams"), where("name_lower", "==", name.toLowerCase()));
         const snapshot = await getDocs(q);
         return !snapshot.empty;
-    };
+    }, []);
 
-    const createTeam = async (name: string, theme: { color: string, emoji: string }, tags: string[], position: string) => {
+    const createTeam = useCallback(async (name: string, theme: { color: string, emoji: string }, tags: string[], position: string) => {
         if (!user) return;
         if (await checkTeamName(name)) throw new Error("Team name taken");
 
@@ -136,7 +148,6 @@ export function TeamProvider({ children }: { children: React.ReactNode }) {
         const userRef = doc(db, "users", user.uid);
         const inviteCode = generateInviteCode();
 
-        // Transaction to ensure atomicity (name unique check ideally inside, but kept simple here)
         await runTransaction(db, async (transaction) => {
             transaction.set(teamRef, {
                 id: teamRef.id,
@@ -157,9 +168,9 @@ export function TeamProvider({ children }: { children: React.ReactNode }) {
                 teamId: teamRef.id
             });
         });
-    };
+    }, [user, checkTeamName]); // checkTeamName is memoized
 
-    const joinTeam = async (code: string, position: string) => {
+    const joinTeam = useCallback(async (code: string, position: string) => {
         if (!user) return;
 
         const q = query(collection(db, "teams"), where("inviteCode", "==", code.toUpperCase()));
@@ -171,12 +182,9 @@ export function TeamProvider({ children }: { children: React.ReactNode }) {
         const teamRef = doc(db, "teams", teamDoc.id);
         const userRef = doc(db, "users", user.uid);
 
-        if (teamDoc.data().members.includes(user.uid)) return; // Already in
+        if (teamDoc.data().members.includes(user.uid)) return;
 
         await runTransaction(db, async (transaction) => {
-            // Check if positions field exists, if not create it (logic simplified: just assume update works if we use set with merge or update with dot notation if guaranteed)
-            // Ideally we read it first. We did read teamDoc.
-            // Let's us update. 
             transaction.update(teamRef, {
                 members: arrayUnion(user.uid),
                 [`positions.${user.uid}`]: position || "Member"
@@ -185,9 +193,9 @@ export function TeamProvider({ children }: { children: React.ReactNode }) {
                 teamId: teamDoc.id
             });
         });
-    };
+    }, [user]);
 
-    const leaveTeam = async () => {
+    const leaveTeam = useCallback(async () => {
         if (!user || !team) return;
 
         const teamRef = doc(db, "teams", team.id);
@@ -201,9 +209,9 @@ export function TeamProvider({ children }: { children: React.ReactNode }) {
                 teamId: null
             });
         });
-    };
+    }, [user, team]);
 
-    const searchTeams = async (queryStr: string) => {
+    const searchTeams = useCallback(async (queryStr: string) => {
         if (!queryStr || queryStr.length < 3) return [];
         const q = query(
             collection(db, "teams"),
@@ -212,27 +220,56 @@ export function TeamProvider({ children }: { children: React.ReactNode }) {
         );
         const snap = await getDocs(q);
         return snap.docs.map(d => ({ id: d.id, ...d.data() } as Team));
-    };
+    }, []);
 
-    const submitIdea = async () => {
+    const saveSubmission = useCallback(async (data: Partial<Team>) => {
+        if (!team) {
+            console.error("saveSubmission: No team found");
+            return;
+        }
+
+        // Remove undefined fields to prevent Firestore errors
+        const cleanedData = Object.fromEntries(
+            Object.entries(data).filter(([_, v]) => v !== undefined)
+        );
+
+        console.log("Saving submission to Firestore:", team.id, cleanedData);
+        const teamRef = doc(db, "teams", team.id);
+        try {
+            await updateDoc(teamRef, cleanedData);
+            console.log("Save success");
+        } catch (e) {
+            console.error("Save failed:", e);
+            throw e;
+        }
+    }, [team]);
+
+    const submitIdea = useCallback(async (data?: Partial<Team>) => {
         if (!team) return;
+        console.log("Submitting idea...");
+
+        const cleanedData = data ? Object.fromEntries(
+            Object.entries(data).filter(([_, v]) => v !== undefined)
+        ) : {};
+
         const teamRef = doc(db, "teams", team.id);
         await updateDoc(teamRef, {
+            ...cleanedData,
             submissionStatus: 'submitted'
         });
-    };
+    }, [team]);
 
-    const submitPrototype = async (data: any) => {
+    const submitPrototype = useCallback(async (data: any) => {
         if (!team) return;
         const teamRef = doc(db, "teams", team.id);
         await updateDoc(teamRef, {
             prototype: data,
             prototypeSubmittedAt: serverTimestamp()
         });
-    }
+    }, [team]);
 
     return (
-        <TeamContext.Provider value={{ team, loading, createTeam, joinTeam, leaveTeam, searchTeams, checkTeamName, submitIdea, submitPrototype }}>
+        <TeamContext.Provider value={{ team, loading, createTeam, joinTeam, leaveTeam, searchTeams, checkTeamName, saveSubmission, submitIdea, submitPrototype }}>
             {children}
         </TeamContext.Provider>
     );
