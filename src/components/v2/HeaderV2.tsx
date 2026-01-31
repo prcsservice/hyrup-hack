@@ -15,6 +15,11 @@ export function HeaderV2() {
             <div className="container flex items-center justify-between h-16">
                 {/* Logo + HYRUP emphasis */}
                 <Link href="/" className="flex items-center gap-3">
+                    <img
+                        src="/hyrup_logo.svg"
+                        alt="HYRUP"
+                        className="w-8 h-8"
+                    />
                     <span className="text-2xl font-display font-bold text-white tracking-tight">
                         FixForward
                     </span>
@@ -26,22 +31,15 @@ export function HeaderV2() {
                 {/* Registration Timer */}
                 <CountdownTimer className="hidden lg:flex" />
 
-                {/* CTA buttons */}
-                <div className="flex items-center gap-3">
-                    <Link
-                        href="/register"
-                        className="px-4 py-2 text-sm text-white/70 hover:text-white transition-colors"
-                    >
-                        Login
-                    </Link>
-                    <Link
-                        href="/register"
-                        className="group px-5 py-2 bg-[#FF4D00] text-black text-sm font-semibold flex items-center gap-2 hover:gap-3 transition-all"
-                    >
-                        Register
-                        <ArrowRight className="w-4 h-4" />
-                    </Link>
-                </div>
+                {/* CTA button - Smaller on mobile */}
+                <Link
+                    href="/register"
+                    className="group px-4 md:px-6 py-2 md:py-2.5 bg-[#FF4D00] text-black text-sm font-semibold flex items-center gap-2 hover:gap-3 transition-all"
+                >
+                    <span className="md:hidden">Join</span>
+                    <span className="hidden md:inline">Join the Movement</span>
+                    <ArrowRight className="w-4 h-4" />
+                </Link>
             </div>
         </header>
     );

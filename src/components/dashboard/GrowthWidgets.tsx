@@ -37,7 +37,7 @@ function ViralLoopWidget() {
     const progress = Math.min((referralCount / target) * 100, 100);
     const isUnlocked = referralCount >= target;
 
-    const referralLink = user ? `https://fixforward.xyz/register?ref=${user.uid}` : "Loading...";
+    const referralLink = user ? `https://fixforward.hyrup.in/register?ref=${user.uid}` : "Loading...";
 
     const handleCopy = () => {
         navigator.clipboard.writeText(referralLink);

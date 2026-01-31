@@ -55,13 +55,20 @@ export function FooterV2() {
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 mb-auto">
                     {/* Brand column */}
                     <div className="col-span-2 md:col-span-1">
-                        <Link href="/" className="inline-block mb-4">
-                            <span className="text-2xl font-display font-bold text-black">
-                                FixForward
-                            </span>
-                            <span className="block text-xs font-mono text-black/60 tracking-widest uppercase mt-1">
-                                BY HYRUP
-                            </span>
+                        <Link href="/" className="inline-flex items-center gap-2 mb-4">
+                            <img
+                                src="/hyrup_logo.svg"
+                                alt="HYRUP"
+                                className="w-8 h-8"
+                            />
+                            <div>
+                                <span className="text-2xl font-display font-bold text-black block">
+                                    FixForward
+                                </span>
+                                <span className="text-xs font-mono text-black/60 tracking-widest uppercase">
+                                    BY HYRUP
+                                </span>
+                            </div>
                         </Link>
                         <p className="text-sm text-black/70 mb-6">
                             India&apos;s student-powered innovation movement.

@@ -31,6 +31,20 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
             touchMultiplier: 2,
         });
 
+        // Handle wheel events - stop Lenis on elements with data-lenis-prevent
+        const handleWheel = (e: WheelEvent) => {
+            const target = e.target as Element;
+            if (target?.closest('[data-lenis-prevent]')) {
+                lenisRef.current?.stop();
+                // Re-enable after the scroll is done
+                setTimeout(() => {
+                    lenisRef.current?.start();
+                }, 100);
+            }
+        };
+
+        window.addEventListener('wheel', handleWheel, { passive: true });
+
         // RAF loop
         function raf(time: number) {
             lenisRef.current?.raf(time);
@@ -43,6 +57,7 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
         (window as unknown as { lenis: Lenis }).lenis = lenisRef.current;
 
         return () => {
+            window.removeEventListener('wheel', handleWheel);
             lenisRef.current?.destroy();
             lenisRef.current = null;
         };

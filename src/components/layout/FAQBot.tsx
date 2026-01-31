@@ -10,17 +10,64 @@ interface Message {
     type: 'user' | 'bot';
     content: string;
     faqItem?: FAQItem;
+    suggestions?: { label: string; query: string }[];
 }
+
+// Suggested follow-up questions based on category
+const categorySuggestions: Record<string, { label: string; query: string }[]> = {
+    registration: [
+        { label: "Registration fee?", query: "registration fee" },
+        { label: "Who can participate?", query: "eligibility" },
+        { label: "Create a team", query: "create team" },
+    ],
+    teams: [
+        { label: "Join a team", query: "join team" },
+        { label: "Team size limit?", query: "team size" },
+        { label: "Who can submit?", query: "who submit idea" },
+    ],
+    submission: [
+        { label: "What's in Phase 2?", query: "phase 2" },
+        { label: "File formats?", query: "file formats" },
+        { label: "Can I edit after?", query: "edit submission" },
+    ],
+    judging: [
+        { label: "When are results?", query: "results announce" },
+        { label: "Who are judges?", query: "who judges" },
+        { label: "What are prizes?", query: "prizes" },
+    ],
+    prizes: [
+        { label: "Do all get certificates?", query: "certificate" },
+        { label: "Judging criteria?", query: "judging criteria" },
+        { label: "How to win?", query: "how judged" },
+    ],
+    technical: [
+        { label: "Submission not saving?", query: "submission not saving" },
+        { label: "Login issues?", query: "login trouble" },
+        { label: "Contact support", query: "contact support" },
+    ],
+};
 
 const quickActions = [
     { label: "How to register?", query: "register" },
     { label: "Team size", query: "team size limit" },
     { label: "Submission deadline", query: "deadline" },
     { label: "Prize info", query: "prizes" },
+    { label: "Judging criteria", query: "how judged" },
+    { label: "Contact support", query: "contact support" },
 ];
 
-export function FAQBot() {
-    const [isOpen, setIsOpen] = useState(false);
+interface FAQBotProps {
+    isOpen?: boolean;
+    onToggle?: () => void;
+}
+
+export function FAQBot({ isOpen: externalIsOpen, onToggle }: FAQBotProps = {}) {
+    const [internalIsOpen, setInternalIsOpen] = useState(false);
+
+    // Use external control if provided, otherwise use internal state
+    const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
+    const toggleOpen = onToggle || (() => setInternalIsOpen(!internalIsOpen));
+
     const [messages, setMessages] = useState<Message[]>([
         {
             id: 'welcome',
@@ -36,8 +83,24 @@ export function FAQBot() {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
+    // Reset chat function
+    const resetChat = () => {
+        setMessages([{
+            id: 'welcome',
+            type: 'bot',
+            content: "Chat reset! 🔄 Hi again! I'm the FixForward assistant. Ask me anything about the hackathon.",
+        }]);
+    };
+
     const handleSend = async (query: string) => {
         if (!query.trim()) return;
+
+        // Check for reset command
+        if (query.trim().toLowerCase() === 'hyrup') {
+            setInput("");
+            resetChat();
+            return;
+        }
 
         const userMessage: Message = {
             id: Date.now().toString(),
@@ -58,17 +121,27 @@ export function FAQBot() {
 
         if (matches.length > 0) {
             const topMatch = matches[0];
+            // Get suggestions based on the answer's category
+            const suggestions = categorySuggestions[topMatch.category] || [];
             botMessage = {
                 id: (Date.now() + 1).toString(),
                 type: 'bot',
                 content: topMatch.answer,
                 faqItem: topMatch,
+                suggestions: suggestions.filter(s =>
+                    s.query.toLowerCase() !== query.toLowerCase()
+                ).slice(0, 3),
             };
         } else {
             botMessage = {
                 id: (Date.now() + 1).toString(),
                 type: 'bot',
                 content: "I couldn't find a specific answer for that. Try rephrasing your question, or contact us at fixforward.hyrup@gmail.com for help.",
+                suggestions: [
+                    { label: "How to register?", query: "register" },
+                    { label: "Team info", query: "team size" },
+                    { label: "Contact support", query: "contact support" },
+                ],
             };
         }
 
@@ -89,14 +162,15 @@ export function FAQBot() {
 
     return (
         <>
-            {/* Toggle Button */}
+            {/* Toggle Button - Desktop only */}
             <motion.button
-                onClick={() => setIsOpen(!isOpen)}
-                className="fixed bottom-6 left-6 w-14 h-14 bg-bg-secondary border border-stroke-primary text-accent flex items-center justify-center z-50 shadow-lg hover:border-accent transition-colors"
+                onClick={toggleOpen}
+                className="hidden md:flex fixed bottom-24 right-6 w-12 h-12 bg-bg-secondary border border-stroke-primary text-accent items-center justify-center z-40 shadow-lg hover:border-accent transition-colors"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
+                data-tour="faq"
             >
-                {isOpen ? <X size={24} /> : <Bot size={24} />}
+                {isOpen ? <X size={20} /> : <Bot size={20} />}
             </motion.button>
 
             {/* Chat Panel */}
@@ -106,7 +180,7 @@ export function FAQBot() {
                         initial={{ opacity: 0, y: 20, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                        className="fixed bottom-24 left-6 w-80 h-[450px] bg-bg-secondary border border-stroke-primary flex flex-col z-50 shadow-2xl"
+                        className="fixed bottom-40 right-6 w-[420px] h-[360px] bg-bg-secondary border border-stroke-primary flex flex-col z-50 shadow-2xl"
                     >
                         {/* Header */}
                         <div className="p-3 border-b border-stroke-primary bg-bg-tertiary/50 flex items-center gap-2">
@@ -118,7 +192,7 @@ export function FAQBot() {
                                 <span className="text-[10px] text-text-muted block">Ask me anything</span>
                             </div>
                             <button
-                                onClick={() => setIsOpen(false)}
+                                onClick={toggleOpen}
                                 className="ml-auto text-text-muted hover:text-white transition-colors"
                             >
                                 <X size={16} />
@@ -128,7 +202,11 @@ export function FAQBot() {
                         {/* Messages */}
                         <div className="flex-1 overflow-y-auto p-3 space-y-3">
                             {messages.map((msg) => (
-                                <MessageBubble key={msg.id} message={msg} />
+                                <MessageBubble
+                                    key={msg.id}
+                                    message={msg}
+                                    onSuggestionClick={handleQuickAction}
+                                />
                             ))}
 
                             {/* Typing indicator */}
@@ -180,7 +258,7 @@ export function FAQBot() {
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
                                     onKeyDown={handleKeyDown}
-                                    placeholder="Type your question..."
+                                    placeholder="Type your question... (type 'hyrup' to reset)"
                                     className="flex-1 bg-bg-tertiary border border-stroke-primary px-3 py-2 text-sm text-white placeholder:text-text-muted focus:border-accent outline-none"
                                     disabled={isTyping}
                                 />
@@ -200,7 +278,13 @@ export function FAQBot() {
     );
 }
 
-function MessageBubble({ message }: { message: Message }) {
+function MessageBubble({
+    message,
+    onSuggestionClick
+}: {
+    message: Message;
+    onSuggestionClick?: (query: string) => void;
+}) {
     const isBot = message.type === 'bot';
 
     return (
@@ -211,7 +295,7 @@ function MessageBubble({ message }: { message: Message }) {
         >
             <div className={`max-w-[85%] flex gap-2 ${isBot ? '' : 'flex-row-reverse'}`}>
                 <div className={`
-                    w-6 h-6 flex-shrink-0 flex items-center justify-center
+                    w-6 h-6 shrink-0 flex items-center justify-center
                     ${isBot
                         ? 'bg-accent/10 border border-accent/30 text-accent'
                         : 'bg-bg-tertiary border border-stroke-primary text-text-muted'
@@ -219,18 +303,34 @@ function MessageBubble({ message }: { message: Message }) {
                 `}>
                     {isBot ? <Sparkles size={12} /> : <User size={12} />}
                 </div>
-                <div className={`
-                    px-3 py-2 text-sm
-                    ${isBot
-                        ? 'bg-bg-tertiary text-white border border-stroke-primary'
-                        : 'bg-accent/10 text-white border border-accent/30'
-                    }
-                `}>
-                    {message.content}
-                    {message.faqItem && (
-                        <span className="block mt-1 text-[9px] text-text-muted">
-                            Category: {message.faqItem.category}
-                        </span>
+                <div className="flex flex-col gap-2">
+                    <div className={`
+                        px-3 py-2 text-sm
+                        ${isBot
+                            ? 'bg-bg-tertiary text-white border border-stroke-primary'
+                            : 'bg-accent/10 text-white border border-accent/30'
+                        }
+                    `}>
+                        {message.content}
+                        {message.faqItem && (
+                            <span className="block mt-1 text-[9px] text-text-muted">
+                                Category: {message.faqItem.category}
+                            </span>
+                        )}
+                    </div>
+                    {/* Suggested follow-up questions */}
+                    {isBot && message.suggestions && message.suggestions.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                            {message.suggestions.map((suggestion) => (
+                                <button
+                                    key={suggestion.query}
+                                    onClick={() => onSuggestionClick?.(suggestion.query)}
+                                    className="text-[10px] px-2 py-1 bg-accent/10 border border-accent/30 text-accent hover:bg-accent/20 transition-colors"
+                                >
+                                    {suggestion.label}
+                                </button>
+                            ))}
+                        </div>
                     )}
                 </div>
             </div>

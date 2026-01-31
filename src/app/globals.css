@@ -157,6 +157,14 @@ html.lenis, html.lenis body {
   overflow: hidden;
 }
 
+/* Allow native scroll on elements with data-lenis-prevent */
+[data-lenis-prevent] {
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  touch-action: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* ─────────────────────────────────────────────────────────────────────────────
    TYPOGRAPHY — design.md §4
    Tight tracking, uppercase labels, numeric emphasis, strong left alignment
@@ -538,3 +546,77 @@ html.lenis, html.lenis body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent);
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   DRIVER.JS CUSTOM STYLES
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.driver-popover {
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--accent) !important;
+  border-radius: 0 !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+}
+
+.driver-popover-title {
+  font-family: var(--font-display) !important;
+  font-size: 1.125rem !important;
+  font-weight: 700 !important;
+  color: var(--text-primary) !important;
+}
+
+.driver-popover-description {
+  font-family: var(--font-body) !important;
+  font-size: 0.875rem !important;
+  color: var(--text-secondary) !important;
+  line-height: 1.5 !important;
+}
+
+.driver-popover-progress-text {
+  font-family: var(--font-mono) !important;
+  font-size: 0.75rem !important;
+  color: var(--text-muted) !important;
+}
+
+.driver-popover-navigation-btns button {
+  font-family: var(--font-body) !important;
+  font-weight: 600 !important;
+  border-radius: 0 !important;
+  transition: all 0.15s ease !important;
+}
+
+.driver-popover-prev-btn {
+  background: transparent !important;
+  border: 1px solid var(--stroke-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+.driver-popover-prev-btn:hover {
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+}
+
+.driver-popover-next-btn {
+  background: var(--accent) !important;
+  color: var(--bg-primary) !important;
+}
+
+.driver-popover-next-btn:hover {
+  opacity: 0.9 !important;
+}
+
+.driver-popover-close-btn {
+  color: var(--text-muted) !important;
+}
+
+.driver-popover-close-btn:hover {
+  color: var(--text-primary) !important;
+}
+
+.driver-popover-arrow-side-left.driver-popover-arrow,
+.driver-popover-arrow-side-right.driver-popover-arrow,
+.driver-popover-arrow-side-top.driver-popover-arrow,
+.driver-popover-arrow-side-bottom.driver-popover-arrow {
+  border-color: var(--accent) !important;
+}
+

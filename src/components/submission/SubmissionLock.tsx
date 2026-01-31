@@ -27,7 +27,7 @@ export function SubmissionLock({ leaderName }: SubmissionLockProps) {
             animate={{ opacity: 1, y: 0 }}
             className="bg-bg-tertiary/50 border border-stroke-primary p-4 flex items-center gap-4 mb-6"
         >
-            <div className="w-10 h-10 bg-accent/10 border border-accent/30 flex items-center justify-center flex-shrink-0">
+            <div className="w-10 h-10 bg-accent/10 border border-accent/30 flex items-center justify-center shrink-0">
                 <Lock size={18} className="text-accent" />
             </div>
             <div>

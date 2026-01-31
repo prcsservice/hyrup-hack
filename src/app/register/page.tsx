@@ -80,7 +80,7 @@ function RegisterPageContent() {
     return (
         <main className="min-h-screen grid lg:grid-cols-2">
 
-            {/* LEFT: The Manifesto (Visuals) */}
+            {/* LEFT: The Manifesto (Visuals) - Desktop Only */}
             <div className="relative hidden lg:flex flex-col justify-between p-16 bg-bg-secondary overflow-hidden border-r border-stroke-divider">
 
                 {/* Background Grid */}
@@ -132,19 +132,66 @@ function RegisterPageContent() {
             </div>
 
             {/* RIGHT: The Gateway (Auth Form) */}
-            <div className="relative flex items-center justify-center p-8 lg:p-16 bg-bg-primary">
-                <div className="w-full max-w-md space-y-8">
+            <div className="relative flex flex-col items-center justify-center p-6 sm:p-8 lg:p-16 bg-bg-primary min-h-screen">
+
+                {/* Mobile: Top Branding */}
+                <div className="lg:hidden absolute top-6 left-6 z-10">
+                    <Link href="/" className="flex items-center gap-2">
+                        <img src="/hyrup_logo.svg" alt="HYRUP" className="w-6 h-6" />
+                        <span className="text-lg font-bold font-display">FixForward</span>
+                    </Link>
+                </div>
+
+                {/* Mobile: Background Pattern */}
+                <div className="lg:hidden absolute inset-0 overflow-hidden pointer-events-none">
+                    <div className="absolute top-0 right-0 w-48 h-48 opacity-10">
+                        <svg viewBox="0 0 100 100" className="w-full h-full">
+                            <circle cx="80" cy="20" r="40" fill="none" stroke="#FF4D00" strokeWidth="0.5" />
+                            <circle cx="80" cy="20" r="30" fill="none" stroke="#FF4D00" strokeWidth="0.3" />
+                            <circle cx="80" cy="20" r="20" fill="none" stroke="#FF4D00" strokeWidth="0.2" />
+                        </svg>
+                    </div>
+                </div>
+
+                <div className="w-full max-w-md space-y-6 lg:space-y-8">
 
                     {/* Header */}
-                    <div className="text-center lg:text-left space-y-2">
-                        <h1 className="text-3xl font-display font-bold">Join the Movement</h1>
-                        <p className="text-text-secondary">
+                    <div className="text-center space-y-2">
+                        <motion.h1
+                            className="text-2xl sm:text-3xl font-display font-bold"
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                        >
+                            Join the Movement
+                        </motion.h1>
+                        <p className="text-text-secondary text-sm sm:text-base">
                             Sign in to register for FixForward 2025.
                         </p>
                     </div>
 
+                    {/* Mobile: Compact Benefits */}
+                    <motion.div
+                        className="lg:hidden flex flex-wrap gap-2 justify-center"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.2 }}
+                    >
+                        {[
+                            "5,000+ builders",
+                            "₹3L prize pool",
+                            "48hr launch"
+                        ].map((item, i) => (
+                            <span
+                                key={i}
+                                className="px-3 py-1.5 bg-accent/10 border border-accent/20 text-accent text-xs font-medium"
+                            >
+                                {item}
+                            </span>
+                        ))}
+                    </motion.div>
+
                     {/* Auth Box */}
-                    <div className="space-y-6 pt-4">
+                    <div className="space-y-5 pt-2 lg:pt-4">
                         {error && (
                             <div className="p-3 bg-red-500/10 border border-red-500/20 rounded text-sm text-red-400 flex items-center gap-2">
                                 <span className="font-bold">Error:</span> {error}
@@ -189,7 +236,7 @@ function RegisterPageContent() {
                             </div>
                         </div>
 
-                        <p className="text-center text-sm text-text-muted">
+                        <p className="text-center text-xs sm:text-sm text-text-muted">
                             By continuing, you agree to our{" "}
                             <Link href="/terms" className="underline hover:text-accent">Terms of Service</Link>
                             {" "}and{" "}
@@ -198,7 +245,7 @@ function RegisterPageContent() {
                     </div>
 
                     {/* Config & Help */}
-                    <div className="pt-8 border-t border-stroke-divider flex justify-between text-xs text-text-muted font-mono">
+                    <div className="pt-6 lg:pt-8 border-t border-stroke-divider flex justify-between text-xs text-text-muted font-mono">
                         <span>FIXFORWARD ID: 2025-GX</span>
                         <span>HELP CENTER</span>
                     </div>

@@ -34,6 +34,8 @@ export function JoinRequestsPanel() {
             return;
         }
 
+        let previousCount = 0;
+
         // Listen to join requests for this team
         const q = query(
             collection(db, "joinRequests"),
@@ -45,12 +47,31 @@ export function JoinRequestsPanel() {
                 id: doc.id,
                 ...doc.data()
             })) as JoinRequest[];
+
+            // Check for new requests and notify
+            if (data.length > previousCount && previousCount > 0) {
+                const newRequest = data[data.length - 1];
+
+                // Show browser notification if permission granted
+                if (Notification.permission === "granted") {
+                    new Notification("New Join Request!", {
+                        body: `${newRequest.userName} wants to join your team`,
+                        icon: "/hyrup_logo.svg",
+                        tag: "join-request"
+                    });
+                }
+
+                // Also show toast
+                showToast(`${newRequest.userName} requested to join!`, "info");
+            }
+
+            previousCount = data.length;
             setRequests(data);
             setLoading(false);
         });
 
         return () => unsubscribe();
-    }, [team?.id, isLeader]);
+    }, [team?.id, isLeader, showToast]);
 
     const handleApprove = async (request: JoinRequest) => {
         if (!team) return;

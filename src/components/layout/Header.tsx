@@ -64,6 +64,11 @@ export function Header() {
                 >
                     {/* Logo */}
                     <Link href="/" className="flex items-center gap-3">
+                        <img
+                            src="/hyrup_logo.svg"
+                            alt="HYRUP"
+                            className="w-7 h-7"
+                        />
                         <span className="text-lg font-semibold tracking-tight">
                             FixForward
                         </span>

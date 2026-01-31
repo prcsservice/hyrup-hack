@@ -65,7 +65,7 @@ export function WhyHyrup() {
                     animate={isInView ? { opacity: 1, x: 0 } : {}}
                     transition={{ duration: 0.6 }}
                 >
-                    <span className="text-[#FF4D00] font-mono text-sm tracking-widest">06</span>
+                    <span className="text-[#FF4D00] font-mono text-sm tracking-widest">00</span>
                     <div className="h-px w-12 bg-[#FF4D00]/30" />
                     <span className="text-white/40 font-mono text-xs tracking-widest uppercase">
                         Meet HYRUP

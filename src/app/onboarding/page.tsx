@@ -174,7 +174,7 @@ function OnboardingPageContent() {
                         <input
                             {...register("phoneNumber")}
                             className="w-full bg-bg-tertiary border border-stroke-primary p-3 rounded-sm focus:border-accent outline-none text-white text-sm"
-                            placeholder="+919876543210"
+                            placeholder="9876543210"
                         />
                         {errors.phoneNumber && <p className="text-red-500 text-xs">{errors.phoneNumber.message}</p>}
                         <p className="text-[10px] text-text-muted">Used only for urgent hackathon updates.</p>

@@ -25,9 +25,17 @@ service cloud.firestore {
     // --- Collection Rules ---
 
     // 1. Users: Users can read/write their own profile. Admins and Judges can read all.
+    // Team leaders can update teamId field when accepting join requests.
+    // Team members can read each other's profiles.
     match /users/{userId} {
-      allow read: if isAuthenticated() && (isOwner(userId) || isAdmin() || isJudge());
-      allow write: if isAuthenticated() && isOwner(userId); // Only user can update profile (except role, which should be protected via function, but for MVP client-side is mostly trusted or admin dashboard)
+      // Allow read for: self, admin, judge, or any authenticated user (simplified for team member access)
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && (
+        isOwner(userId) || 
+        isAdmin() ||
+        // Allow team leaders to update another user's teamId when accepting join requests
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['teamId']))
+      );
     }
 
     // 2. Teams: 
@@ -40,6 +48,16 @@ service cloud.firestore {
       // Complex rule: check if auth.uid is in resource.data.members list would be ideal, 
       // but for MVP allow write if authenticated (or add member check)
       allow write: if isAuthenticated(); 
+    }
+
+    // 2.5 Join Requests
+    match /joinRequests/{requestId} {
+      // Authenticated users can create requests
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      // Team leaders and the requester can read requests
+      allow read: if isAuthenticated(); // Simplified for MVP, or stricter: data.userId == auth.uidOrIsTeamLeader
+      // Allow updates (e.g. status changes)
+      allow write: if isAuthenticated();
     }
 
     // 3. Submissions (Ideas/Prototypes):

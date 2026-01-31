@@ -55,7 +55,10 @@ export async function requestNotificationPermission(userId: string): Promise<str
         }
 
         // Register service worker
-        const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+        // Register service worker with config params
+        const swUrl = `/firebase-messaging-sw.js?apiKey=${process.env.NEXT_PUBLIC_FIREBASE_API_KEY}&authDomain=${process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}&projectId=${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}&storageBucket=${process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET}&messagingSenderId=${process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID}&appId=${process.env.NEXT_PUBLIC_FIREBASE_APP_ID}`;
+
+        const registration = await navigator.serviceWorker.register(swUrl);
         console.log('Service worker registered:', registration);
 
         // Get FCM token

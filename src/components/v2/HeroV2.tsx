@@ -109,9 +109,9 @@ export function HeroV2() {
 
                     {/* BOTTOM ROW: Description left, CTA right */}
                     <div className="flex flex-col md:flex-row justify-between items-end gap-8 relative z-10">
-                        {/* Bottom left: Description */}
+                        {/* Bottom left: Description - Hidden on mobile, shown below news card */}
                         <motion.div
-                            className="max-w-sm"
+                            className="max-w-sm hidden md:block"
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.6, duration: 0.6 }}
@@ -142,6 +142,20 @@ export function HeroV2() {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.8, duration: 0.6 }}
                         >
+                            {/* Mobile News Card - Right aligned */}
+                            <div className="lg:hidden mb-4 ml-auto max-w-[280px]">
+                                <StateNewsQuote
+                                    stateId={activeState.id}
+                                    stateIndex={activeState.index}
+                                />
+                            </div>
+                            {/* Mobile description - full width, right aligned text */}
+                            <p className="lg:hidden text-sm text-white/50 leading-relaxed text-right mb-6">
+                                India&apos;s systems are cracking. Healthcare fails the poor.
+                                Courts delay justice. Schools teach tests, not thinking.
+                                We&apos;re building the fix.
+                            </p>
+
                             <h2 className="mb-6">
                                 <span className="block text-2xl md:text-3xl lg:text-4xl font-display font-semibold text-white">
                                     Where Problems
@@ -153,11 +167,22 @@ export function HeroV2() {
 
                             {/* CTA buttons */}
                             <div className="flex gap-3 justify-end">
-                                <button className="group px-6 py-3 bg-[#FF4D00] text-black text-sm font-semibold flex items-center gap-2 hover:gap-4 transition-all duration-300">
+                                <a
+                                    href="/register"
+                                    className="group px-6 py-3 bg-[#FF4D00] text-black text-sm font-semibold flex items-center gap-2 hover:gap-4 transition-all duration-300 whitespace-nowrap"
+                                >
                                     Get Started Now
                                     <ArrowRight className="w-4 h-4" />
-                                </button>
-                                <button className="px-6 py-3 border border-white/20 text-white text-sm font-medium hover:border-white/50 transition-colors">
+                                </a>
+                                <button
+                                    onClick={() => {
+                                        window.scrollTo({
+                                            top: window.innerHeight * 1.8,
+                                            behavior: 'smooth'
+                                        });
+                                    }}
+                                    className="px-6 py-3 border border-white/20 text-white text-sm font-medium hover:border-white/50 transition-colors whitespace-nowrap"
+                                >
                                     Learn more
                                 </button>
                             </div>

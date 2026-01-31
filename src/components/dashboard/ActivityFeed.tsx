@@ -90,7 +90,7 @@ export function ActivityFeed() {
                             <span className="text-sm text-white truncate">
                                 {visibleActivity.message}
                             </span>
-                            <span className="text-[10px] text-text-muted font-mono ml-auto flex-shrink-0">
+                            <span className="text-[10px] text-text-muted font-mono ml-auto shrink-0">
                                 {formatTimeAgo(visibleActivity.createdAt?.toDate())}
                             </span>
                         </motion.div>
@@ -112,8 +112,8 @@ export function ActivityFeed() {
                         <div
                             key={activity.id}
                             className={`w-1.5 h-1.5 rounded-full transition-colors ${visibleActivity?.id === activity.id
-                                    ? 'bg-accent'
-                                    : 'bg-stroke-divider'
+                                ? 'bg-accent'
+                                : 'bg-stroke-divider'
                                 }`}
                         />
                     ))}

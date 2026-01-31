@@ -101,7 +101,7 @@ export function ProgressMilestones() {
                 />
                 {/* Glow effect */}
                 <motion.div
-                    className="absolute inset-y-0 w-8 bg-gradient-to-r from-transparent via-accent/50 to-transparent"
+                    className="absolute inset-y-0 w-8 bg-linear-to-r from-transparent via-accent/50 to-transparent"
                     animate={{ left: ["0%", "100%"] }}
                     transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                     style={{ opacity: progress > 0 && progress < 100 ? 1 : 0 }}

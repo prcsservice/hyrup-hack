@@ -4,16 +4,23 @@
 importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
 
-// Firebase config - must match your app config
-firebase.initializeApp({
-    apiKey: "AIzaSyCInQKw-z6CpO9zafRKfPGIWY8rVWiqjp0",
-    authDomain: "hyrup-hackthon.firebaseapp.com",
-    projectId: "hyrup-hackthon",
-    storageBucket: "hyrup-hackthon.firebasestorage.app",
-    messagingSenderId: "974152553200",
-    appId: "1:974152553200:web:0fe9e0b97b39e8ba86d8fb",
-    measurementId: "G-4CXEJL3CVB"
-});
+// Firebase config - parsed from URL query parameters
+const params = new URLSearchParams(self.location.search);
+const config = {
+    apiKey: params.get('apiKey'),
+    authDomain: params.get('authDomain'),
+    projectId: params.get('projectId'),
+    storageBucket: params.get('storageBucket'),
+    messagingSenderId: params.get('messagingSenderId'),
+    appId: params.get('appId')
+};
+
+// Initialize only if keys are present
+if (config.apiKey && config.projectId) {
+    firebase.initializeApp(config);
+} else {
+    console.error('[firebase-messaging-sw.js] Missing Firebase config parameters');
+}
 
 const messaging = firebase.messaging();
 

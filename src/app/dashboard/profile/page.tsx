@@ -6,16 +6,11 @@ import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/context/ToastContext";
-import { ArrowLeft, User, GraduationCap, Smartphone, Save, Shield } from "lucide-react";
+import { ArrowLeft, User, GraduationCap, Smartphone, Save, Shield, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
-import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 export default function ProfilePage() {
-    return (
-        <ProtectedRoute>
-            <ProfileContent />
-        </ProtectedRoute>
-    );
+    return <ProfileContent />;
 }
 
 function ProfileContent() {
@@ -30,7 +25,7 @@ function ProfileContent() {
         university: "",
         phoneNumber: "",
         bio: "",
-        skills: "" // stored as comma separated string for simple UI, array in DB? Let's use string for now
+        skills: ""
     });
 
     useEffect(() => {
@@ -70,24 +65,41 @@ function ProfileContent() {
         }
     };
 
-    if (loading) return <div className="p-8 text-center text-text-muted animate-pulse">Loading Profile...</div>;
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-[60vh]">
+                <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+            </div>
+        );
+    }
 
     return (
-        <div className="min-h-screen bg-bg-primary p-4 lg:p-8">
+        <div className="max-w-4xl mx-auto">
+            {/* Header */}
             <header className="flex items-center gap-4 mb-8">
-                <button onClick={() => router.push('/dashboard')} className="p-2 hover:bg-bg-tertiary rounded-full text-text-muted hover:text-white transition-colors">
-                    <ArrowLeft size={20} />
-                </button>
-                <h1 className="text-3xl font-display font-bold">My Profile</h1>
+                <Button
+                    variant="secondary"
+                    size="sm"
+                    className="h-8 w-8 p-0 border-stroke-divider"
+                    onClick={() => router.push('/dashboard')}
+                >
+                    <ArrowLeft size={16} />
+                </Button>
+                <div>
+                    <div className="flex items-center gap-2">
+                        <Settings size={20} className="text-accent" />
+                        <h1 className="text-2xl md:text-3xl font-display font-bold">My Profile</h1>
+                    </div>
+                    <p className="text-text-secondary text-sm">Manage your account settings</p>
+                </div>
             </header>
 
-            <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
                 {/* ID Card */}
                 <div className="md:col-span-1 space-y-6">
-                    <div className="bg-bg-secondary border border-stroke-primary p-6 rounded-sm text-center">
+                    <div className="bg-bg-secondary border border-stroke-primary p-6 text-center">
                         <div className="w-24 h-24 rounded-full bg-bg-tertiary mx-auto mb-4 border-2 border-accent p-1">
-                            {/* Valid Google Image or Placeholder */}
                             {user?.photoURL ? (
                                 <img src={user.photoURL} alt="Avatar" className="w-full h-full rounded-full object-cover" />
                             ) : (
@@ -100,8 +112,8 @@ function ProfileContent() {
                         <p className="text-sm text-text-secondary font-mono mb-4">{user?.email}</p>
 
                         <div className="flex justify-center gap-2">
-                            <span className="px-2 py-1 bg-green-500/10 text-green-500 text-[10px] uppercase font-bold rounded border border-green-500/20 flex items-center gap-1">
-                                <Shield size={10} /> Verifed
+                            <span className="px-2 py-1 bg-green-500/10 text-green-500 text-[10px] uppercase font-bold border border-green-500/20 flex items-center gap-1">
+                                <Shield size={10} /> Verified
                             </span>
                         </div>
                     </div>
@@ -109,7 +121,7 @@ function ProfileContent() {
 
                 {/* Edit Form */}
                 <div className="md:col-span-2">
-                    <form onSubmit={handleSave} className="bg-bg-secondary border border-stroke-primary p-6 md:p-8 rounded-sm space-y-6">
+                    <form onSubmit={handleSave} className="bg-bg-secondary border border-stroke-primary p-6 md:p-8 space-y-6">
 
                         <div className="grid md:grid-cols-2 gap-6">
                             <div className="space-y-2">
@@ -118,7 +130,7 @@ function ProfileContent() {
                                 </label>
                                 <input
                                     required
-                                    className="w-full bg-bg-tertiary border border-stroke-primary p-3 rounded-sm focus:border-accent outline-none text-white text-sm"
+                                    className="w-full bg-bg-tertiary border border-stroke-primary p-3 focus:border-accent outline-none text-white text-sm"
                                     value={formData.displayName}
                                     onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
                                 />
@@ -130,7 +142,7 @@ function ProfileContent() {
                                 </label>
                                 <input
                                     required
-                                    className="w-full bg-bg-tertiary border border-stroke-primary p-3 rounded-sm focus:border-accent outline-none text-white text-sm"
+                                    className="w-full bg-bg-tertiary border border-stroke-primary p-3 focus:border-accent outline-none text-white text-sm"
                                     value={formData.university}
                                     onChange={(e) => setFormData({ ...formData, university: e.target.value })}
                                 />
@@ -142,7 +154,7 @@ function ProfileContent() {
                                 <Smartphone size={14} /> Phone
                             </label>
                             <input
-                                className="w-full bg-bg-tertiary border border-stroke-primary p-3 rounded-sm focus:border-accent outline-none text-white text-sm"
+                                className="w-full bg-bg-tertiary border border-stroke-primary p-3 focus:border-accent outline-none text-white text-sm"
                                 value={formData.phoneNumber}
                                 onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
                             />
@@ -151,7 +163,7 @@ function ProfileContent() {
                         <div className="space-y-2">
                             <label className="text-sm font-mono text-text-muted uppercase">Bio / Skills</label>
                             <textarea
-                                className="w-full bg-bg-tertiary border border-stroke-primary p-3 rounded-sm focus:border-accent outline-none text-white text-sm h-32 resize-none"
+                                className="w-full bg-bg-tertiary border border-stroke-primary p-3 focus:border-accent outline-none text-white text-sm h-32 resize-none"
                                 placeholder="Tell us about yourself..."
                                 value={formData.bio}
                                 onChange={(e) => setFormData({ ...formData, bio: e.target.value })}

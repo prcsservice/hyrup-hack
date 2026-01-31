@@ -2,6 +2,7 @@
 
 import { Users, FileText, HelpCircle, Headphones } from "lucide-react";
 import { useTeam } from "@/context/TeamContext";
+import { useToast } from "@/context/ToastContext";
 import { useRouter } from "next/navigation";
 
 /**
@@ -29,19 +30,20 @@ const ACTIONS = [
         icon: HelpCircle,
         label: "View Rules",
         description: "Check guidelines",
-        href: "/faq"
+        href: "/rules"
     },
     {
         id: "support",
         icon: Headphones,
         label: "Get Support",
         description: "Contact team",
-        action: "email"
+        href: "/contact"
     }
 ];
 
 export function QuickActionsRail() {
     const { team } = useTeam();
+    const { showToast } = useToast();
     const router = useRouter();
 
     const handleAction = (action: typeof ACTIONS[0]) => {
@@ -49,9 +51,9 @@ export function QuickActionsRail() {
             router.push(action.href);
         } else if (action.action === "share" && team) {
             // Copy invite link to clipboard
-            const link = `${window.location.origin}/register?code=${team.inviteCode}`;
+            const link = `https://fixforward.hyrup.in/register?code=${team.inviteCode}`;
             navigator.clipboard.writeText(link);
-            alert(`Invite link copied!\n${link}`);
+            showToast("Invite link copied!", "success");
         } else if (action.action === "email") {
             window.location.href = "mailto:info.hyrup@gmail.com?subject=FixForward%20Support";
         }

@@ -139,7 +139,7 @@ export function OnboardingTour() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/70 z-[100]"
+                className="fixed inset-0 bg-black/70 z-100"
                 onClick={handleSkip}
             />
 
@@ -148,7 +148,7 @@ export function OnboardingTour() {
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="fixed z-[101] pointer-events-none"
+                    className="fixed z-101 pointer-events-none"
                     style={{
                         top: targetRect.top - 4,
                         left: targetRect.left - 4,
@@ -165,7 +165,7 @@ export function OnboardingTour() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
-                className="fixed z-[102] w-80 bg-bg-secondary border border-accent p-5 shadow-2xl"
+                className="fixed z-102 w-80 bg-bg-secondary border border-accent p-5 shadow-2xl"
                 style={getTooltipPosition(targetRect, step.position)}
                 onClick={e => e.stopPropagation()}
             >

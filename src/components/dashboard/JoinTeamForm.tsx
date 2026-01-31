@@ -57,9 +57,9 @@ export function JoinTeamForm() {
                     className="w-full bg-white/5 backdrop-blur-sm border border-stroke-primary p-3 rounded-lg focus:border-accent outline-none text-sm text-white transition-colors"
                     required
                 >
-                    <option value="" disabled>Select Your Role</option>
+                    <option value="" disabled className="bg-zinc-900">Select Your Role</option>
                     {competitionConfig.squadRoles.filter(r => r.id !== 'leader').map(role => (
-                        <option key={role.id} value={role.label}>{role.label}</option>
+                        <option key={role.id} value={role.label} className="bg-zinc-900">{role.label}</option>
                     ))}
                 </select>
 
