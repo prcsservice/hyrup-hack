@@ -18,26 +18,45 @@ import {
 } from "lucide-react";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
-import { Button } from "@/components/ui/Button"; // Check path
+import { Button } from "@/components/ui/Button";
+import { isAdminEmail } from "@/lib/adminCheck";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-    const { user, loading, signOut } = useAuth(); // role is handled by email check for strictness
+    const { user, loading, signOut } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [isLoggingIn, setIsLoggingIn] = useState(false);
+    const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+    const [checkingAdmin, setCheckingAdmin] = useState(true);
 
-    // Specific Admin Login Handler
+    // Check admin status when user changes
+    useEffect(() => {
+        const checkAdmin = async () => {
+            if (user?.email) {
+                setCheckingAdmin(true);
+                const adminStatus = await isAdminEmail(user.email);
+                setIsAdmin(adminStatus);
+                setCheckingAdmin(false);
+            } else {
+                setIsAdmin(false);
+                setCheckingAdmin(false);
+            }
+        };
+        checkAdmin();
+    }, [user]);
+
+    // Admin Login Handler
     const handleAdminLogin = async () => {
         setIsLoggingIn(true);
         try {
             const result = await signInWithPopup(auth, googleProvider);
             const email = result.user.email;
-            if (email !== 'info.hyrup@gmail.com') {
-                await signOut(); // Force sign out if wrong email
-                alert("Access Denied. You must use info.hyrup@gmail.com");
+            const isAdminUser = await isAdminEmail(email);
+            if (!isAdminUser) {
+                await signOut();
+                alert("Access Denied. Your email is not in the admin list.");
             }
-            // If success, react state updates and renders content
         } catch (error) {
             console.error("Admin Login Error", error);
         } finally {
@@ -45,9 +64,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         }
     };
 
-    if (loading) return <div className="h-screen bg-bg-primary flex items-center justify-center text-text-muted font-mono animate-pulse">Verifying Security Protocol...</div>;
-
-    const isAdmin = user?.email === 'info.hyrup@gmail.com';
+    if (loading || checkingAdmin) {
+        return <div className="h-screen bg-bg-primary flex items-center justify-center text-text-muted font-mono animate-pulse">Verifying Security Protocol...</div>;
+    }
 
     // 1. Not Logged In -> Show Login Screen
     if (!user) {
@@ -69,14 +88,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         {isLoggingIn ? 'Authenticating...' : 'Sign in with Google'}
                     </Button>
                     <p className="text-[10px] text-text-muted mt-4">
-                        Allowed: info.hyrup@gmail.com
+                        Access controlled via Firestore admin list
                     </p>
                 </div>
             </div>
         );
     }
 
-    // 2. Logged In but Wrong Email -> Show Unauthorized
+    // 2. Logged In but Not Admin -> Show Unauthorized
     if (!isAdmin) {
         return (
             <div className="h-screen bg-bg-primary flex flex-col items-center justify-center p-4">
@@ -87,7 +106,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         Logged in as: <span className="font-mono text-accent">{user.email}</span>
                     </p>
                     <p className="text-text-secondary text-xs mb-6">
-                        You do not have clearance to access the Admin Panel.
+                        Your email is not in the admin list.
                     </p>
                     <div className="flex flex-col gap-2">
                         <Button variant="secondary" onClick={signOut}>
@@ -106,9 +125,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const navItems = [
         { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
         { name: 'Judges & Invites', href: '/admin/judges', icon: Gavel },
+        { name: 'Submissions', href: '/admin/submissions', icon: BookOpen },
         { name: 'Users & Teams', href: '/admin/users', icon: Users },
         { name: 'Notifications', href: '/admin/notifications', icon: Megaphone },
-        { name: 'CMS', href: '/admin/cms', icon: BookOpen },
+        { name: 'CMS', href: '/admin/cms', icon: Settings },
         { name: 'Global Settings', href: '/admin/settings', icon: Settings },
         { name: 'Audit Logs', href: '/admin/audit', icon: History },
     ];

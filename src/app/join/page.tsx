@@ -29,7 +29,7 @@ function JoinPageContent() {
         if (!code) return;
         setStatus("joining");
         try {
-            await joinTeam(code);
+            await joinTeam(code, "Member");
             setStatus("success");
             setTimeout(() => router.push("/dashboard"), 1500);
         } catch (err: any) {

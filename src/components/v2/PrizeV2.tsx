@@ -68,7 +68,7 @@ export function PrizeV2() {
                             Entry
                         </span>
                         <span className="text-2xl font-mono text-white">
-                            ₹{competitionConfig.entryFee}
+                            Free for Students
                         </span>
                     </div>
                     <div className="text-center">

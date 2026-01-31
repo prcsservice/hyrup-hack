@@ -27,7 +27,7 @@ export const siteConfig = {
 
 export const competitionConfig = {
     // Entry fee
-    entryFee: 10, // INR
+    entryFee: 0, // Free for students
     currency: "INR",
 
     // Prize pool
@@ -65,6 +65,23 @@ export const competitionConfig = {
         impact: 15,
         livePitch: 20,
     },
+
+    // Solution Tracks (Mandatory Selection)
+    solutionTracks: [
+        { id: "tech", label: "Technology / Product", description: "Apps, AI workflows, Automation, No-code solutions" },
+        { id: "medical", label: "Medical / Legal / Policy", description: "Protocols, SOPs, Governance frameworks, Policy proposals" },
+        { id: "business", label: "Business / Strategy", description: "Market research, Revenue models, Scaling strategies" },
+        { id: "design", label: "Design / Communication", description: "UX frameworks, Campaigns, Visual storytelling" },
+    ],
+
+    // Squad Roles
+    squadRoles: [
+        { id: "leader", label: "Squad Leader", icon: "Crown" },
+        { id: "coder", label: "Code Maverick", icon: "Code" },
+        { id: "designer", label: "Pixel Alchemist", icon: "Palette" },
+        { id: "strategist", label: "Strategy Ninja", icon: "TrendingUp" },
+        { id: "ops", label: "System Sentinel", icon: "Shield" },
+    ],
 } as const;
 
 // Problem domains - layout.md §5.6

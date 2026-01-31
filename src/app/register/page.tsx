@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
 import { ArrowRight, Check } from "lucide-react";
@@ -18,7 +18,7 @@ import { InteractiveOrbit } from "@/components/landing/InteractiveOrbit";
  * Right: The Gateway (Auth Form)
  */
 
-export default function RegisterPage() {
+function RegisterPageContent() {
     const { signInWithGoogle, user, loading, onboarded } = useAuth();
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -206,5 +206,13 @@ export default function RegisterPage() {
                 </div>
             </div>
         </main>
+    );
+}
+
+export default function RegisterPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-bg-primary">Loading...</div>}>
+            <RegisterPageContent />
+        </Suspense>
     );
 }

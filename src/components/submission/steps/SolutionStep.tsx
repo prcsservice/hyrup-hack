@@ -2,10 +2,11 @@
 
 import { useSubmission } from "@/context/SubmissionContext";
 import { WordCounter } from "@/components/ui/WordCounter";
-import { Lightbulb, Heart, Scale, Leaf, GraduationCap, Wheat, Accessibility, Zap, Car, Landmark, Shield } from "lucide-react";
+import { Lightbulb, Heart, Scale, Leaf, GraduationCap, Wheat, Accessibility, Zap, Car, Landmark, Shield, Code, Palette, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import { GuidanceModal } from "../GuidanceModal";
 import { guidanceContent } from "@/data/guidance";
+import { competitionConfig } from "@/lib/config";
 
 const domains = [
     { id: "health", label: "Healthcare", icon: Heart },
@@ -93,6 +94,34 @@ export function SolutionStep() {
                             >
                                 <Icon className={`w-6 h-6 ${isSelected ? 'text-accent' : 'text-text-muted group-hover:text-accent transition-colors'}`} />
                                 <span className="text-xs font-medium">{d.label}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* Solution Track Selection */}
+            <div className="space-y-4">
+                <label className="block text-sm font-mono uppercase text-text-muted">Solution Track (Mandatory)</label>
+                <p className="text-xs text-text-secondary -mt-2">Select the track that best represents your core deliverable.</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {competitionConfig.solutionTracks.map((track) => {
+                        const isSelected = data.track === track.id;
+                        return (
+                            <button
+                                key={track.id}
+                                type="button"
+                                onClick={() => updateData({ track: track.id })}
+                                className={`
+                                    p-4 rounded-sm border transition-all duration-200 text-left
+                                    ${isSelected
+                                        ? 'bg-accent/10 border-accent text-white'
+                                        : 'bg-bg-tertiary border-stroke-divider hover:border-stroke-primary text-text-secondary hover:text-white'
+                                    }
+                                `}
+                            >
+                                <span className={`font-bold ${isSelected ? 'text-accent' : 'text-white'}`}>{track.label}</span>
+                                <p className="text-xs mt-1 text-text-muted">{track.description}</p>
                             </button>
                         );
                     })}

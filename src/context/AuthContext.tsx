@@ -7,7 +7,7 @@ import {
     signInWithPopup,
     signOut as firebaseSignOut
 } from "firebase/auth";
-import { doc, getDoc, setDoc, serverTimestamp, onSnapshot, collection, query, where, getDocs } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp, onSnapshot, collection, query, where, getDocs, updateDoc, increment } from "firebase/firestore";
 import { auth, db, googleProvider } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 
@@ -72,7 +72,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const userRef = doc(db, "users", user.uid);
         const userSnap = await getDoc(userRef);
 
-        const isAdmin = user.email === 'info.hyrup@gmail.com';
+        // Check admin status from Firestore
+        const { isAdminEmail } = await import('@/lib/adminCheck');
+        const isAdmin = await isAdminEmail(user.email);
 
         if (!userSnap.exists()) {
             await setDoc(userRef, {
@@ -80,13 +82,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 email: user.email,
                 displayName: user.displayName,
                 photoURL: user.photoURL,
-                paymentStatus: 'pending',
                 teamId: null,
                 role: isAdmin ? 'admin' : 'student',
-                onboarded: false, // Default
+                onboarded: false,
                 createdAt: serverTimestamp(),
                 lastLogin: serverTimestamp(),
+                referralCount: 0
             });
+
+            // HANDLE REFERRAL
+            const refCode = localStorage.getItem("hyrup_referral");
+            if (refCode && refCode !== user.uid) { // Don't refer self
+                try {
+                    // 1. Mark this user as referred
+                    await updateDoc(userRef, { referredBy: refCode });
+
+                    // 2. Increment referrer's count
+                    const referrerRef = doc(db, "users", refCode);
+                    await updateDoc(referrerRef, {
+                        referralCount: increment(1)
+                    });
+
+                    localStorage.removeItem("hyrup_referral"); // Clear after use
+                } catch (err) {
+                    console.error("Referral tracking failed:", err);
+                }
+            }
         } else {
             // Updated Last Login
             await setDoc(userRef, { lastLogin: serverTimestamp() }, { merge: true });

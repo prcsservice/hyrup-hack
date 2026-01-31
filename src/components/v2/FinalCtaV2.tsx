@@ -2,6 +2,7 @@
 
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
+import { competitionConfig } from "@/lib/config";
 import { ArrowRight } from "lucide-react";
 
 /**
@@ -60,11 +61,11 @@ export function FinalCtaV2() {
                         {/* Entry info */}
                         <div className="flex items-center gap-8 text-white/40 font-mono text-sm">
                             <span>
-                                Entry: <span className="text-white">₹99</span>
+                                Entry: <span className="text-white">Free for Students</span>
                             </span>
                             <span className="w-1 h-1 bg-white/20 rounded-full" />
                             <span>
-                                Team Size: <span className="text-white">1-4</span>
+                                Team Size: <span className="text-white">1-{competitionConfig.maxTeamSize}</span>
                             </span>
                         </div>
                     </motion.div>

@@ -5,6 +5,15 @@ import { Button } from "@/components/ui/Button";
 import { useTeam } from "@/context/TeamContext";
 import { useAuth } from "@/context/AuthContext";
 import { motion } from "framer-motion";
+import { competitionConfig } from "@/lib/config";
+
+// Track badge colors
+const TRACK_COLORS: Record<string, string> = {
+    tech: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+    medical: "bg-green-500/20 text-green-400 border-green-500/30",
+    business: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+    design: "bg-pink-500/20 text-pink-400 border-pink-500/30",
+};
 
 const ICONS: Record<string, any> = {
     rocket: Rocket,
@@ -64,6 +73,11 @@ export function TeamCard() {
                         <div>
                             <div className="text-xs font-mono text-text-muted uppercase tracking-widest mb-1">Squadron</div>
                             <h2 className="text-4xl font-display font-bold">{team.name}</h2>
+                            {team.track && (
+                                <span className={`mt-2 inline-block text-xs font-mono px-2 py-1 rounded border ${TRACK_COLORS[team.track] || 'bg-gray-500/20 text-gray-400 border-gray-500/30'}`}>
+                                    {competitionConfig.solutionTracks.find(t => t.id === team.track)?.label || 'Track'}
+                                </span>
+                            )}
                         </div>
                     </div>
 

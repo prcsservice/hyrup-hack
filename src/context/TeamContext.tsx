@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, useMemo } from "react";
 import {
     collection,
     doc,
@@ -19,6 +19,7 @@ import {
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import { logActivity } from "@/lib/activityService";
 
 // Types
 export interface Team {
@@ -40,6 +41,7 @@ export interface Team {
     problemEvidence?: string;
     solutionOverview?: string;
     domain?: string;
+    track?: string; // Solution Track
     targetAudience?: string;
     impactStats?: string;
     fileUrls?: string[];
@@ -62,6 +64,8 @@ export interface Team {
 export interface TeamContextType {
     team: Team | null;
     loading: boolean;
+    isTeamLeader: boolean;
+    canEditSubmission: boolean;
     createTeam: (name: string, theme: { color: string, emoji: string }, tags: string[], position: string) => Promise<void>;
     joinTeam: (code: string, position: string) => Promise<void>;
     leaveTeam: () => Promise<void>;
@@ -75,6 +79,8 @@ export interface TeamContextType {
 const TeamContext = createContext<TeamContextType>({
     team: null,
     loading: true,
+    isTeamLeader: false,
+    canEditSubmission: false,
     createTeam: async () => { },
     joinTeam: async () => { },
     leaveTeam: async () => { },
@@ -89,7 +95,34 @@ export function TeamProvider({ children }: { children: React.ReactNode }) {
     const { user } = useAuth();
     const [team, setTeam] = useState<Team | null>(null);
     const [loading, setLoading] = useState(true);
+    const [globalSettings, setGlobalSettings] = useState<{ registrationDeadline?: string }>({});
     const router = useRouter();
+
+    // Computed: Is current user the team leader?
+    const isTeamLeader = useMemo(() => {
+        if (!team || !user) return false;
+        return team.leaderId === user.uid;
+    }, [team, user]);
+
+    // Computed: Can user edit submission? (Leader + before deadline)
+    const canEditSubmission = useMemo(() => {
+        if (!isTeamLeader) return false;
+        if (globalSettings.registrationDeadline) {
+            const deadline = new Date(globalSettings.registrationDeadline);
+            if (new Date() > deadline) return false;
+        }
+        return true;
+    }, [isTeamLeader, globalSettings.registrationDeadline]);
+
+    // Listen to global settings for deadline
+    useEffect(() => {
+        const unsub = onSnapshot(doc(db, "settings", "public"), (docSnap) => {
+            if (docSnap.exists()) {
+                setGlobalSettings(docSnap.data() as any);
+            }
+        });
+        return () => unsub();
+    }, []);
 
     // 1. Listen to User's Team ID changes
     useEffect(() => {
@@ -168,7 +201,10 @@ export function TeamProvider({ children }: { children: React.ReactNode }) {
                 teamId: teamRef.id
             });
         });
-    }, [user, checkTeamName]); // checkTeamName is memoized
+
+        // Log activity for feed
+        logActivity('team_created', { teamName: name });
+    }, [user, checkTeamName]);
 
     const joinTeam = useCallback(async (code: string, position: string) => {
         if (!user) return;
@@ -257,6 +293,9 @@ export function TeamProvider({ children }: { children: React.ReactNode }) {
             ...cleanedData,
             submissionStatus: 'submitted'
         });
+
+        // Log activity for feed
+        logActivity('idea_submitted', { teamName: team.name });
     }, [team]);
 
     const submitPrototype = useCallback(async (data: any) => {
@@ -266,10 +305,13 @@ export function TeamProvider({ children }: { children: React.ReactNode }) {
             prototype: data,
             prototypeSubmittedAt: serverTimestamp()
         });
+
+        // Log activity for feed
+        logActivity('prototype_submitted', { teamName: team.name });
     }, [team]);
 
     return (
-        <TeamContext.Provider value={{ team, loading, createTeam, joinTeam, leaveTeam, searchTeams, checkTeamName, saveSubmission, submitIdea, submitPrototype }}>
+        <TeamContext.Provider value={{ team, loading, isTeamLeader, canEditSubmission, createTeam, joinTeam, leaveTeam, searchTeams, checkTeamName, saveSubmission, submitIdea, submitPrototype }}>
             {children}
         </TeamContext.Provider>
     );

@@ -12,8 +12,19 @@ import { NotificationFeed } from "@/components/dashboard/NotificationFeed";
 import { MissionCountdown } from "@/components/dashboard/MissionCountdown";
 import { ProgressBar } from "@/components/dashboard/ProgressBar";
 import { QuickActionsRail } from "@/components/dashboard/QuickActionsRail";
+import { GrowthWidgets } from "@/components/dashboard/GrowthWidgets";
+import { ProgressMilestones } from "@/components/dashboard/ProgressMilestones";
+import { CountdownTimer } from "@/components/dashboard/CountdownTimer";
+import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
+import { TeamChat } from "@/components/dashboard/TeamChat";
+import { SocialCardGenerator } from "@/components/social/SocialCardGenerator";
+import { FAQBot } from "@/components/layout/FAQBot";
+import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
+import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
+import { NotificationPrompt } from "@/components/notifications/NotificationPrompt";
 import { ArrowRight, Target, Zap, CheckCircle, Info, Trophy, Rocket } from "lucide-react";
 import { useRouter } from "next/navigation";
+
 
 export default function DashboardPage() {
     return (
@@ -40,7 +51,7 @@ function DashboardContent() {
 
     return (
         <ProtectedRoute>
-            <div className="h-screen bg-bg-primary p-4 flex flex-col overflow-hidden">
+            <div className="min-h-screen bg-bg-primary p-4 flex flex-col">
 
                 {/* Header - Compact */}
                 <header className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-4 shrink-0">
@@ -65,8 +76,11 @@ function DashboardContent() {
                     </div>
                 </header>
 
-                {/* Dynamic Grid Layout - Full Height Filling */}
-                <div className="flex-1 min-h-0">
+                {/* Push Notification Prompt - Shows for all users */}
+                <NotificationPrompt />
+
+                {/* Dynamic Grid Layout */}
+                <div className="flex-1">
                     {loading ? (
                         <div className="flex items-center justify-center h-full text-text-muted font-mono animate-pulse">Running Diagnostics...</div>
                     ) : team ? (
@@ -77,6 +91,19 @@ function DashboardContent() {
 
                             {/* Scrollable Container (Quick Actions + Grid) */}
                             <div data-lenis-prevent className="flex-1 overflow-y-auto min-h-0 space-y-4 pr-2 pb-2 scrollbar-thin scrollbar-thumb-stroke-secondary scrollbar-track-transparent">
+                                {/* Progress Milestones */}
+                                <div data-tour="progress">
+                                    <ProgressMilestones />
+                                </div>
+
+                                {/* Countdown Timer */}
+                                <div data-tour="countdown">
+                                    <CountdownTimer />
+                                </div>
+
+                                {/* Activity Feed */}
+                                <ActivityFeed />
+
                                 {/* Quick Actions */}
                                 <QuickActionsRail />
 
@@ -84,7 +111,7 @@ function DashboardContent() {
                                 <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
 
                                     {/* 1. TEAM IDENTITY (Hero) - Spans 8 cols */}
-                                    <div className="md:col-span-8 md:row-span-2 h-full">
+                                    <div className="md:col-span-8 md:row-span-2 h-full" data-tour="team">
                                         <TeamCard />
                                     </div>
 
@@ -165,8 +192,9 @@ function DashboardContent() {
                                         )}
                                     </div>
 
-                                    <div className="md:col-span-4 h-full">
+                                    <div className="md:col-span-4 h-full space-y-4">
                                         <NotificationFeed />
+                                        <GrowthWidgets />
                                     </div>
 
                                 </div>
@@ -174,23 +202,23 @@ function DashboardContent() {
                         </div>
                     ) : (
                         /* 🟡 SOLO MODE: ONBOARDING GRID */
-                        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 h-full">
+                        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 pb-8">
 
                             {/* 1. CREATE SQUAD (Main Action) - Left 7 cols */}
-                            <div className="md:col-span-7 lg:col-span-8 bg-bg-secondary border border-stroke-primary p-6 lg:p-10 relative overflow-hidden group h-full flex flex-col justify-center">
+                            <div className="md:col-span-7 lg:col-span-8 bg-bg-secondary border border-stroke-primary p-6 lg:p-10 relative overflow-hidden group min-h-[400px] flex flex-col">
                                 {/* Ambient Background */}
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-accent/10 transition-colors duration-700" />
 
-                                <div className="relative z-10 max-w-lg mx-auto w-full">
+                                <div className="relative z-10 max-w-lg mx-auto w-full flex-1 flex flex-col justify-center">
                                     <CreateTeamForm />
                                 </div>
                             </div>
 
                             {/* 2. JOIN / SEARCH (Side Actions) - Right 5 cols */}
-                            <div className="md:col-span-5 lg:col-span-4 flex flex-col gap-4 h-full">
+                            <div className="md:col-span-5 lg:col-span-4 flex flex-col gap-4">
 
                                 {/* Join Card */}
-                                <div className="bg-bg-secondary border border-stroke-primary p-6 flex-1 flex flex-col justify-center">
+                                <div className="bg-bg-secondary border border-stroke-primary p-6 flex-1 min-h-[180px]">
                                     <JoinTeamForm />
                                 </div>
                                 <div className="text-center">
@@ -200,7 +228,7 @@ function DashboardContent() {
                                 </div>
 
                                 {/* Search Card */}
-                                <div className="bg-bg-tertiary border border-stroke-divider p-6 flex-1 flex flex-col justify-center overflow-hidden">
+                                <div className="bg-bg-tertiary border border-stroke-divider p-6 flex-1 min-h-[180px]">
                                     <div className="mb-3">
                                         <h3 className="font-display font-bold text-base mb-1 flex items-center gap-2">
                                             <Zap size={14} className="text-accent" />
@@ -215,6 +243,17 @@ function DashboardContent() {
                         </div>
                     )}
                 </div>
+
+                {/* Floating Components */}
+                <div data-tour="chat">
+                    <TeamChat />
+                </div>
+                <div data-tour="faq">
+                    <FAQBot />
+                </div>
+
+                {/* Onboarding Tour */}
+                <OnboardingTour />
 
             </div>
         </ProtectedRoute>

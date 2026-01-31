@@ -4,11 +4,13 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { Menu, X, ArrowRight } from "lucide-react";
+import { Menu, X, ArrowRight, User } from "lucide-react";
 import { Button, buttonBaseStyles, buttonVariants, buttonSizes } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { navLinks, siteConfig } from "@/lib/config";
 import { buttonPress } from "@/lib/motion";
+import { NotificationBell } from "./NotificationBell";
+import { useAuth } from "@/context/AuthContext";
 
 /**
  * Header v2.0
@@ -25,6 +27,7 @@ export function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [mounted, setMounted] = useState(false);
     const { scrollY } = useScroll();
+    const { user } = useAuth();
 
     // Scroll transforms - height reduces, divider darkens
     const headerHeight = useTransform(scrollY, [0, 100], [72, 56]);
@@ -74,27 +77,48 @@ export function Header() {
 
                     {/* Right side */}
                     <div className="flex items-center gap-4">
-                        <Link href="/register">
-                            <motion.div
-                                className={cn(buttonBaseStyles, buttonVariants.secondary, buttonSizes.sm, "hidden md:flex")}
-                                variants={buttonPress}
-                                initial="initial"
-                                whileTap="tap"
-                            >
-                                Login
-                            </motion.div>
-                        </Link>
-                        <Link href="/register">
-                            <motion.div
-                                className={cn(buttonBaseStyles, buttonVariants.primary, buttonSizes.sm, "hidden sm:flex")}
-                                variants={buttonPress}
-                                initial="initial"
-                                whileTap="tap"
-                            >
-                                Register
-                                <ArrowRight className="w-4 h-4" />
-                            </motion.div>
-                        </Link>
+                        {user ? (
+                            /* Logged in: Show Bell + Dashboard */
+                            <>
+                                <NotificationBell />
+                                <Link href="/dashboard">
+                                    <motion.div
+                                        className={cn(buttonBaseStyles, buttonVariants.primary, buttonSizes.sm, "hidden sm:flex")}
+                                        variants={buttonPress}
+                                        initial="initial"
+                                        whileTap="tap"
+                                    >
+                                        <User className="w-4 h-4 mr-1" />
+                                        Dashboard
+                                    </motion.div>
+                                </Link>
+                            </>
+                        ) : (
+                            /* Not logged in: Show Login/Register */
+                            <>
+                                <Link href="/register">
+                                    <motion.div
+                                        className={cn(buttonBaseStyles, buttonVariants.secondary, buttonSizes.sm, "hidden md:flex")}
+                                        variants={buttonPress}
+                                        initial="initial"
+                                        whileTap="tap"
+                                    >
+                                        Login
+                                    </motion.div>
+                                </Link>
+                                <Link href="/register">
+                                    <motion.div
+                                        className={cn(buttonBaseStyles, buttonVariants.primary, buttonSizes.sm, "hidden sm:flex")}
+                                        variants={buttonPress}
+                                        initial="initial"
+                                        whileTap="tap"
+                                    >
+                                        Register
+                                        <ArrowRight className="w-4 h-4" />
+                                    </motion.div>
+                                </Link>
+                            </>
+                        )}
 
                         {/* Mobile menu */}
                         <button

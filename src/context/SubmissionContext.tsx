@@ -4,14 +4,13 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { useTeam } from "./TeamContext";
 import { useAuth } from "./AuthContext";
 import { useToast } from "./ToastContext";
-// import { db } from "@/lib/firebase"; // TODO: connect to real DB
-// import { doc, setDoc, getDoc, onSnapshot } from "firebase/firestore";
 
 interface SubmissionData {
     problemStatement: string;
     problemEvidence: string;
     solutionOverview: string;
     domain: string;
+    track: string;
     targetAudience: string;
     impactStats: string;
     fileUrls: string[];
@@ -25,6 +24,8 @@ interface SubmissionContextType {
     setStep: (step: number) => void;
     status: 'draft' | 'saving' | 'saved' | 'submitted';
     submit: (onSuccess?: () => void) => Promise<void>;
+    isTeamLeader: boolean;
+    canEditSubmission: boolean;
 }
 
 const SubmissionContext = createContext<SubmissionContextType | undefined>(undefined);
@@ -34,28 +35,24 @@ const INITIAL_DATA: SubmissionData = {
     problemEvidence: "",
     solutionOverview: "",
     domain: "",
+    track: "",
     targetAudience: "",
     impactStats: "",
     fileUrls: []
 };
 
 export function SubmissionProvider({ children }: { children: ReactNode }) {
-    const { team, submitIdea, saveSubmission } = useTeam();
+    const { team, submitIdea, saveSubmission, isTeamLeader, canEditSubmission } = useTeam();
     const { user } = useAuth();
     const { showToast } = useToast();
 
     const [data, setData] = useState<SubmissionData>(INITIAL_DATA);
     const [step, setStep] = useState(1);
     const [status, setStatus] = useState<'draft' | 'saving' | 'saved' | 'submitted'>('draft');
-
-    // Track if we have initialized data from the team doc
-    const initialized = useState(false); // Using state to force re-render if needed, or ref if not. Actually simple boolean ref is fine but strict mode double effect might be annoying.
-    // Let's use a standard pattern:
     const [isLoaded, setIsLoaded] = useState(false);
 
     useEffect(() => {
         if (team && !isLoaded) {
-            // Check if team has any relevant data to load
             const hasData = team.problemStatement || team.problemEvidence || team.solutionOverview || team.domain;
 
             if (hasData || team.submissionStatus === 'submitted') {
@@ -64,6 +61,7 @@ export function SubmissionProvider({ children }: { children: ReactNode }) {
                     problemEvidence: team.problemEvidence || "",
                     solutionOverview: team.solutionOverview || "",
                     domain: team.domain || "",
+                    track: team.track || "",
                     targetAudience: team.targetAudience || "",
                     impactStats: team.impactStats || "",
                     fileUrls: team.fileUrls || [],
@@ -72,7 +70,7 @@ export function SubmissionProvider({ children }: { children: ReactNode }) {
 
                 if (team.submissionStatus === 'submitted') {
                     setStatus('submitted');
-                    setStep(4); // Jump to review
+                    setStep(4);
                 } else {
                     setStatus('saved');
                 }
@@ -81,12 +79,9 @@ export function SubmissionProvider({ children }: { children: ReactNode }) {
         }
     }, [team, isLoaded]);
 
-    // Debounced Autosave
+    // Debounced Autosave - Only for team leaders
     useEffect(() => {
-        if (status === 'submitted' || !isLoaded) return;
-        // Don't save if data is empty/initial to avoid overwriting DB with empty state on race condition
-        // But if user clears field, we SHOULD save.
-        // The isLoaded check ensures we don't save BEFORE we've loaded existing data.
+        if (status === 'submitted' || !isLoaded || !canEditSubmission) return;
 
         const timer = setTimeout(() => {
             if (status === 'draft') {
@@ -97,17 +92,21 @@ export function SubmissionProvider({ children }: { children: ReactNode }) {
                     setStatus('saved');
                 }).catch(err => {
                     console.error("Autosave failed", err);
-                    setStatus('draft'); // Retry?
+                    setStatus('draft');
                 });
             }
         }, 2000);
 
         return () => clearTimeout(timer);
-    }, [data, status, isLoaded, saveSubmission]);
+    }, [data, status, isLoaded, canEditSubmission, saveSubmission]);
 
     const updateData = (updates: Partial<SubmissionData>) => {
+        if (!canEditSubmission) {
+            showToast("Only the team leader can edit submissions", "error");
+            return;
+        }
         setData(prev => ({ ...prev, ...updates }));
-        if (status !== 'submitted') setStatus('draft'); // Mark as needs saving
+        if (status !== 'submitted') setStatus('draft');
     };
 
     const submit = async (onSuccess?: () => void) => {
@@ -116,10 +115,20 @@ export function SubmissionProvider({ children }: { children: ReactNode }) {
             return;
         }
 
+        if (!isTeamLeader) {
+            showToast("Only the team leader can submit ideas", "error");
+            return;
+        }
+
+        if (!canEditSubmission) {
+            showToast("Submission deadline has passed", "error");
+            return;
+        }
+
         setStatus('saving');
 
         try {
-            await submitIdea(data); // Updates Firestore with data + status
+            await submitIdea(data);
             setStatus('submitted');
             showToast("Submission Received! Good luck.", "success");
 
@@ -134,7 +143,16 @@ export function SubmissionProvider({ children }: { children: ReactNode }) {
     };
 
     return (
-        <SubmissionContext.Provider value={{ data, updateData, step, setStep, status, submit }}>
+        <SubmissionContext.Provider value={{
+            data,
+            updateData,
+            step,
+            setStep,
+            status,
+            submit,
+            isTeamLeader,
+            canEditSubmission
+        }}>
             {children}
         </SubmissionContext.Provider>
     );

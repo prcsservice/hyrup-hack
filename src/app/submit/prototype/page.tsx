@@ -27,7 +27,7 @@ function PrototypeContent() {
     // Form State
     const [formData, setFormData] = useState({
         deckUrl: "",
-        videoUrl: "",
+
         repoUrl: "",
         figmaUrl: "", // Optional
         costModel: "",
@@ -117,19 +117,7 @@ function PrototypeContent() {
                                 <p className="text-[10px] text-text-secondary">Please ensure "Anyone with link" permission is ON.</p>
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="text-sm font-mono text-text-muted uppercase flex items-center gap-2">
-                                    <Youtube size={14} /> Demo Video (YouTube)
-                                </label>
-                                <input
-                                    required
-                                    name="videoUrl"
-                                    placeholder="https://youtube.com/watch?v=..."
-                                    className="w-full bg-bg-tertiary border border-stroke-primary p-3 rounded-sm focus:border-accent outline-none text-white text-sm font-mono"
-                                    value={formData.videoUrl}
-                                    onChange={handleChange}
-                                />
-                            </div>
+
 
                             <div className="space-y-2">
                                 <label className="text-sm font-mono text-text-muted uppercase flex items-center gap-2">

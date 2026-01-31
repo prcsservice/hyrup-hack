@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ArrowRight, Hash } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useTeam } from "@/context/TeamContext";
+import { competitionConfig } from "@/lib/config";
 
 export function JoinTeamForm() {
     const { joinTeam } = useTeam();
@@ -45,17 +46,22 @@ export function JoinTeamForm() {
                         value={code}
                         onChange={(e) => setCode(e.target.value.toUpperCase())}
                         maxLength={6}
-                        className="w-full bg-bg-secondary border border-stroke-primary p-3 pl-10 rounded-sm focus:border-accent outline-none font-mono text-lg uppercase placeholder:text-text-muted"
+                        className="w-full bg-white/5 backdrop-blur-sm border border-stroke-primary p-3 pl-10 rounded-lg focus:border-accent outline-none font-mono text-lg uppercase placeholder:text-text-muted/60 transition-colors"
                         placeholder="XYZ123"
                     />
                 </div>
 
-                <input
+                <select
                     value={position}
                     onChange={(e) => setPosition(e.target.value)}
-                    className="w-full bg-bg-secondary border border-stroke-primary p-3 rounded-sm focus:border-accent outline-none text-sm placeholder:text-text-muted"
-                    placeholder="Your Role (e.g. Designer)"
-                />
+                    className="w-full bg-white/5 backdrop-blur-sm border border-stroke-primary p-3 rounded-lg focus:border-accent outline-none text-sm text-white transition-colors"
+                    required
+                >
+                    <option value="" disabled>Select Your Role</option>
+                    {competitionConfig.squadRoles.filter(r => r.id !== 'leader').map(role => (
+                        <option key={role.id} value={role.label}>{role.label}</option>
+                    ))}
+                </select>
 
                 <Button disabled={loading || code.length < 6 || !position} className="w-full">
                     {loading ? "Joining..." : <>Join Squad <ArrowRight className="w-5 h-5 ml-2" /></>}

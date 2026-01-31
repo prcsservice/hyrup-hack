@@ -95,7 +95,7 @@ export function FooterV2() {
                         &ldquo;Built for students who refuse broken systems.&rdquo;
                     </p>
                     <div className="flex items-center gap-6 text-sm text-white/90 font-medium">
-                        <Link href="/admin" className="hover:text-white transition-colors">
+                        <Link href="/admin" className="hover:text-white transition-colors" suppressHydrationWarning>
                             Admin
                         </Link>
                         <span>© 2026 HYRUP</span>

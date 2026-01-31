@@ -10,6 +10,7 @@ import {
   HeaderV2,
   FooterV2,
 } from "@/components/v2";
+import { WhyHyrup } from "@/components/v2/WhyHyrup";
 
 /**
  * FixForward Landing Page V2
@@ -31,6 +32,7 @@ export default function LandingPage() {
       <main className="relative z-10 bg-[#050505]">
         {/* 01 - THE CALL: Revolutionary hero */}
         <HeroV2 />
+        <WhyHyrup />
 
         {/* 02 - THE MANIFESTO: Emotional storytelling */}
         <ManifestoSection />

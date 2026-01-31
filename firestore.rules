@@ -73,5 +73,50 @@ service cloud.firestore {
         allow read: if isAuthenticated();
         allow write: if isAdmin();
     }
+
+    // 9. Activities (Public Activity Feed)
+    match /activities/{activityId} {
+        // Anyone can read activities (public feed)
+        allow read: if true;
+        
+        // Only authenticated users can create
+        allow create: if isAuthenticated();
+        
+        // Immutable - no updates or deletes
+        allow update, delete: if false;
+    }
+
+    // 10. Team Messages (Team Chat)
+    match /teams/{teamId}/messages/{messageId} {
+        // Only team members can read messages
+        allow read: if isAuthenticated() && 
+            request.auth.uid in get(/databases/$(database)/documents/teams/$(teamId)).data.members;
+        
+        // Only team members can create messages (must be sender)
+        allow create: if isAuthenticated() && 
+            request.auth.uid in get(/databases/$(database)/documents/teams/$(teamId)).data.members &&
+            request.resource.data.senderId == request.auth.uid;
+        
+        // No updates or deletes
+        allow update, delete: if false;
+    }
+
+    // 11. Rate Limits
+    match /rateLimits/{limitId} {
+        allow read, write: if isAuthenticated();
+    }
+
+    // 12. Referrals
+    match /referrals/{referralId} {
+        allow read: if true;
+        allow create, update: if isAuthenticated();
+        allow delete: if false;
+    }
+
+    // 13. Admin Emails (for dynamic admin check)
+    match /adminEmails/{emailId} {
+        allow read: if isAuthenticated();
+        allow write: if false; // Managed via Console only
+    }
   }
 }

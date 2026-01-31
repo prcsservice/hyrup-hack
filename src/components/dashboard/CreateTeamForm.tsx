@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Check, X, Zap, Rocket, Shield, Cpu, Flame, Target, Anchor, Gem } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useTeam } from "@/context/TeamContext";
+import { competitionConfig } from "@/lib/config";
 
 /**
  * Create Team Form - Compact Version
@@ -39,7 +40,8 @@ export function CreateTeamForm({ onSuccess }: { onSuccess?: () => void }) {
     const [selectedIconId, setSelectedIconId] = useState("rocket");
 
     const [color, setColor] = useState(COLORS[0]);
-    const [position, setPosition] = useState("");
+    // Creator is always Squad Leader
+    const position = "Squad Leader";
 
     const handleNameCheck = async (val: string) => {
         setName(val);
@@ -133,7 +135,7 @@ export function CreateTeamForm({ onSuccess }: { onSuccess?: () => void }) {
                         <input
                             value={name}
                             onChange={(e) => handleNameCheck(e.target.value)}
-                            className="w-full bg-bg-secondary border border-stroke-primary p-2.5 rounded-sm focus:border-accent outline-none font-display text-base placeholder:text-text-muted"
+                            className="w-full bg-white/5 backdrop-blur-sm border border-stroke-primary p-3 rounded-lg focus:border-accent outline-none font-display text-base placeholder:text-text-muted/60 transition-colors"
                             placeholder="e.g. Alpha Wolf"
                         />
                         <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -148,18 +150,15 @@ export function CreateTeamForm({ onSuccess }: { onSuccess?: () => void }) {
                     </div>
                     {nameError && <p className="text-red-500 text-[10px]">{nameError}</p>}
                 </div>
-                {/* Position Input */}
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                     <label className="text-[10px] uppercase tracking-wider text-text-muted font-mono">Your Role</label>
-                    <input
-                        value={position}
-                        onChange={(e) => setPosition(e.target.value)}
-                        className="w-full bg-bg-secondary border border-stroke-primary p-2.5 rounded-sm focus:border-accent outline-none font-display text-sm placeholder:text-text-muted/50"
-                        placeholder="e.g. Full Stack Dev"
-                    />
+                    <div className="w-full bg-accent/10 backdrop-blur-sm border border-accent/40 p-3 rounded-lg font-display text-sm text-accent flex items-center gap-2">
+                        <span className="text-accent">👑</span> Squad Leader
+                    </div>
+                    <p className="text-[10px] text-text-muted/70">As creator, you lead the squad.</p>
                 </div>
 
-                <Button type="submit" size="sm" className="w-full h-10" disabled={!name || !!nameError || !position}>
+                <Button type="submit" size="sm" className="w-full h-10" disabled={!name || !!nameError}>
                     Launch Squad
                 </Button>
             </form>

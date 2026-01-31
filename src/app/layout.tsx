@@ -5,6 +5,9 @@ import { NotificationBanner } from "@/components/layout/NotificationBanner";
 import { ToastProvider } from "@/context/ToastContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { SmoothScrollProvider } from "@/components/providers/SmoothScrollProvider";
+import { HydrationSuppressor } from "@/components/providers/HydrationSuppressor";
+import { ReferralTracker } from "@/components/growth/ReferralTracker";
+import { Suspense } from "react";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -61,6 +64,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
+      <head>
+        <HydrationSuppressor />
+      </head>
       <body
         className={`${spaceGrotesk.variable} ${inter.variable} antialiased`}
         suppressHydrationWarning
@@ -68,16 +74,19 @@ export default function RootLayout({
         <AuthProvider>
           <SmoothScrollProvider>
             <ToastProvider>
+              <Suspense fallback={null}>
+                <ReferralTracker />
+              </Suspense>
               <NotificationBanner />
 
-              {/* Noise overlay - design.md §15 */}
-              <div className="noise-overlay" aria-hidden="true" />
+              {/* Noise overlay - design.md §5 */}
+              <div className="noise-overlay" aria-hidden="true" suppressHydrationWarning />
 
               {/* Grid overlay - design.md §5 */}
-              <div className="grid-overlay" aria-hidden="true" />
+              <div className="grid-overlay" aria-hidden="true" suppressHydrationWarning />
 
               {/* Main content */}
-              <div className="flex-1 flex flex-col">
+              <div className="flex-1 flex flex-col" suppressHydrationWarning>
                 {children}
               </div>
             </ToastProvider>
