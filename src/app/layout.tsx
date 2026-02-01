@@ -25,7 +25,11 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "FixForward by HYRUP | India's Student Innovation Challenge",
+  metadataBase: new URL('https://fixforward.hyrup.in'),
+  title: {
+    default: "FixForward by HYRUP | India's Student Innovation Challenge",
+    template: "%s | FixForward by HYRUP",
+  },
   description:
     "Join India's national student-powered innovation challenge. Find real problems in healthcare, law, climate, education & more. Build real fixes. Win ₹3,00,000.",
   keywords: [
@@ -37,25 +41,45 @@ export const metadata: Metadata = {
     "problem solving",
     "startup",
     "competition",
+    "innovation challenge"
   ],
-  authors: [{ name: "HYRUP" }],
+  authors: [{ name: "HYRUP", url: "https://hyrup.in" }],
+  creator: "HYRUP",
+  publisher: "HYRUP",
   openGraph: {
     type: "website",
     locale: "en_IN",
-    url: "https://fixforward.xyz",
+    url: "https://fixforward.hyrup.in",
     siteName: "FixForward by HYRUP",
     title: "FixForward | Students Fixing What's Broken",
     description:
       "India's national student innovation challenge. ₹3,00,000 prize pool. Open to all domains.",
+    images: [
+      {
+        url: '/og-image.png', // Ensure this exists in public/
+        width: 1200,
+        height: 630,
+        alt: 'FixForward by HYRUP',
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "FixForward by HYRUP",
     description: "Students. Fixing What's Broken.",
+    images: ['/og-image.png'],
+    creator: "@hyrup_in",
   },
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   },
 };
 
