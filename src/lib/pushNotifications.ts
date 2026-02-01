@@ -50,9 +50,10 @@ export async function requestNotificationPermission(userId: string): Promise<str
         // Get VAPID key from environment
         const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
         if (!vapidKey) {
-            console.warn('VAPID key not configured');
+            console.warn('VAPID key not configured - Check NEXT_PUBLIC_FIREBASE_VAPID_KEY in .env.local');
             return null;
         }
+        console.log('Using VAPID Key (prefix):', vapidKey.substring(0, 10) + '...');
 
         // Validate required environment variables
         const config = {

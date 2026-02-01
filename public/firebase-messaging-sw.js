@@ -1,8 +1,8 @@
 // Firebase Cloud Messaging Service Worker
 // Place this file in public/firebase-messaging-sw.js
 
-importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js');
 
 // Firebase config - parsed from URL query parameters
 const params = new URLSearchParams(self.location.search);
