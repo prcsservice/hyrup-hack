@@ -18,6 +18,7 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
+import { useSettings } from "@/context/SettingsContext";
 import { useRouter } from "next/navigation";
 import { logActivity } from "@/lib/activityService";
 
@@ -92,10 +93,10 @@ const TeamContext = createContext<TeamContextType>({
 });
 
 export function TeamProvider({ children }: { children: React.ReactNode }) {
-    const { user } = useAuth();
+    const { user, teamId } = useAuth(); // Destructure teamId
     const [team, setTeam] = useState<Team | null>(null);
     const [loading, setLoading] = useState(true);
-    const [globalSettings, setGlobalSettings] = useState<{ registrationDeadline?: string }>({});
+    const { settings: globalSettings } = useSettings();
     const router = useRouter();
 
     // Computed: Is current user the team leader?
@@ -115,16 +116,9 @@ export function TeamProvider({ children }: { children: React.ReactNode }) {
     }, [isTeamLeader, globalSettings.registrationDeadline]);
 
     // Listen to global settings for deadline
-    useEffect(() => {
-        const unsub = onSnapshot(doc(db, "settings", "public"), (docSnap) => {
-            if (docSnap.exists()) {
-                setGlobalSettings(docSnap.data() as any);
-            }
-        });
-        return () => unsub();
-    }, []);
+    // handled by useSettings hook now
 
-    // 1. Listen to User's Team ID changes
+    // 1. Listen to Team changes (using teamId from AuthContext)
     useEffect(() => {
         if (!user) {
             setTeam(null);
@@ -132,30 +126,23 @@ export function TeamProvider({ children }: { children: React.ReactNode }) {
             return;
         }
 
-        // Listener on the User doc to see if they join/leave a team
-        const userUnsub = onSnapshot(doc(db, "users", user.uid), async (userSnap) => {
-            const userData = userSnap.data();
-            const teamId = userData?.teamId;
-
-            if (teamId) {
-                // If they have a team, listen to the Team doc for real-time updates
-                const teamUnsub = onSnapshot(doc(db, "teams", teamId), (teamSnap) => {
-                    if (teamSnap.exists()) {
-                        setTeam({ id: teamSnap.id, ...teamSnap.data() } as Team);
-                    } else {
-                        setTeam(null); // Team deleted?
-                    }
-                    setLoading(false);
-                });
-                return () => teamUnsub();
-            } else {
-                setTeam(null);
+        if (teamId) {
+            // Listen to Team doc
+            const teamUnsub = onSnapshot(doc(db, "teams", teamId), (teamSnap) => {
+                if (teamSnap.exists()) {
+                    setTeam({ id: teamSnap.id, ...teamSnap.data() } as Team);
+                } else {
+                    setTeam(null);
+                }
                 setLoading(false);
-            }
-        });
+            });
+            return () => teamUnsub();
+        } else {
+            setTeam(null);
+            setLoading(false);
+        }
+    }, [user, teamId]);
 
-        return () => userUnsub();
-    }, [user]);
 
     // Utilities
     const generateInviteCode = () => {

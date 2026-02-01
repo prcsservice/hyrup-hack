@@ -43,6 +43,15 @@ export function usePushNotifications(): UsePushNotificationsReturn {
         checkSupport();
     }, []);
 
+    // Auto-register SW if permission is already granted to ensure query params are updated
+    useEffect(() => {
+        if (isSupported && permission === 'granted' && user) {
+            requestNotificationPermission(user.uid).then(fcmToken => {
+                if (fcmToken) setToken(fcmToken);
+            });
+        }
+    }, [isSupported, permission, user]);
+
     // Listen for foreground messages
     useEffect(() => {
         if (!isSupported) return;

@@ -1,8 +1,4 @@
-"use client";
-
-import { useState, useEffect } from 'react';
-import { db } from '@/lib/firebase';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { useSettings } from "@/context/SettingsContext";
 
 export interface GlobalSettings {
     registrationsOpen: boolean;
@@ -26,18 +22,23 @@ const DEFAULT_SETTINGS: GlobalSettings = {
  * Settings are fetched from Firestore and updated in real-time
  */
 export function useGlobalSettings() {
-    const [settings, setSettings] = useState<GlobalSettings>(DEFAULT_SETTINGS);
-    const [loading, setLoading] = useState(true);
+    // Consume context instead of local state/effect
+    const { settings: contextSettings, loading } = useSettings();
+    const settings = contextSettings as unknown as GlobalSettings;
 
-    useEffect(() => {
-        const unsub = onSnapshot(doc(db, 'settings', 'public'), (docSnap) => {
-            if (docSnap.exists()) {
-                setSettings({ ...DEFAULT_SETTINGS, ...docSnap.data() } as GlobalSettings);
-            }
-            setLoading(false);
-        });
-        return () => unsub();
-    }, []);
+    // Removed local state and useEffect
+    // const [settings, setSettings] = useState<GlobalSettings>(DEFAULT_SETTINGS);
+    // const [loading, setLoading] = useState(true);
+
+    // useEffect(() => {
+    //     const unsub = onSnapshot(doc(db, 'settings', 'public'), (docSnap) => {
+    //         if (docSnap.exists()) {
+    //             setSettings({ ...DEFAULT_SETTINGS, ...docSnap.data() } as GlobalSettings);
+    //         }
+    //         setLoading(false);
+    //     });
+    //     return () => unsub();
+    // }, []);
 
     // Helper functions
     const isRegistrationOpen = () => {

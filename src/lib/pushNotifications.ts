@@ -54,9 +54,23 @@ export async function requestNotificationPermission(userId: string): Promise<str
             return null;
         }
 
-        // Register service worker
+        // Validate required environment variables
+        const config = {
+            apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+            authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+            projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+            storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+            messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+            appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+        };
+
+        if (Object.values(config).some(val => !val)) {
+            console.error('Missing Firebase configuration environment variables');
+            return null;
+        }
+
         // Register service worker with config params
-        const swUrl = `/firebase-messaging-sw.js?apiKey=${process.env.NEXT_PUBLIC_FIREBASE_API_KEY}&authDomain=${process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}&projectId=${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}&storageBucket=${process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET}&messagingSenderId=${process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID}&appId=${process.env.NEXT_PUBLIC_FIREBASE_APP_ID}`;
+        const swUrl = `/firebase-messaging-sw.js?apiKey=${config.apiKey}&authDomain=${config.authDomain}&projectId=${config.projectId}&storageBucket=${config.storageBucket}&messagingSenderId=${config.messagingSenderId}&appId=${config.appId}`;
 
         const registration = await navigator.serviceWorker.register(swUrl);
         console.log('Service worker registered:', registration);

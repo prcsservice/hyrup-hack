@@ -4,8 +4,10 @@ import { NotificationBanner } from "@/components/layout/NotificationBanner";
 
 import { ToastProvider } from "@/context/ToastContext";
 import { AuthProvider } from "@/context/AuthContext";
+import { SettingsProvider } from "@/context/SettingsContext";
 import { SmoothScrollProvider } from "@/components/providers/SmoothScrollProvider";
 import { HydrationSuppressor } from "@/components/providers/HydrationSuppressor";
+import { NotificationProvider } from "@/context/NotificationContext";
 import { ReferralTracker } from "@/components/growth/ReferralTracker";
 import { Suspense } from "react";
 import "./globals.css";
@@ -74,21 +76,20 @@ export default function RootLayout({
         <AuthProvider>
           <SmoothScrollProvider>
             <ToastProvider>
-              <Suspense fallback={null}>
-                <ReferralTracker />
-              </Suspense>
-              <NotificationBanner />
+              <SettingsProvider>
+                <NotificationProvider>
+                  {/* Noise overlay - design.md §5 */}
+                  <div className="noise-overlay" aria-hidden="true" suppressHydrationWarning />
 
-              {/* Noise overlay - design.md §5 */}
-              <div className="noise-overlay" aria-hidden="true" suppressHydrationWarning />
+                  {/* Grid overlay - design.md §5 */}
+                  <div className="grid-overlay" aria-hidden="true" suppressHydrationWarning />
 
-              {/* Grid overlay - design.md §5 */}
-              <div className="grid-overlay" aria-hidden="true" suppressHydrationWarning />
-
-              {/* Main content */}
-              <div className="flex-1 flex flex-col" suppressHydrationWarning>
-                {children}
-              </div>
+                  {/* Main content */}
+                  <div className="flex-1 flex flex-col" suppressHydrationWarning>
+                    {children}
+                  </div>
+                </NotificationProvider>
+              </SettingsProvider>
             </ToastProvider>
           </SmoothScrollProvider>
         </AuthProvider>

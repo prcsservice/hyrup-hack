@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { CountdownTimer } from "@/components/ui/CountdownTimer";
+import { useGlobalSettings } from "@/hooks/useGlobalSettings";
 
 interface MissionCountdownProps {
     phase: 'idea' | 'prototype';
@@ -12,18 +13,16 @@ interface MissionCountdownProps {
 export function MissionCountdown({ phase }: MissionCountdownProps) {
     const [deadline, setDeadline] = useState<Date | null>(null);
 
+    const { settings, loading } = useGlobalSettings();
+
     useEffect(() => {
-        const unsub = onSnapshot(doc(db, "settings", "public"), (doc) => {
-            if (doc.exists()) {
-                const data = doc.data();
-                const dateStr = phase === 'idea' ? data.ideaDeadline : data.prototypeDeadline;
-                if (dateStr) {
-                    setDeadline(new Date(dateStr));
-                }
+        if (!loading && settings) {
+            const dateStr = phase === 'idea' ? settings.ideaDeadline : settings.prototypeDeadline;
+            if (dateStr) {
+                setDeadline(new Date(dateStr));
             }
-        });
-        return () => unsub();
-    }, [phase]);
+        }
+    }, [phase, settings, loading]);
 
     if (!deadline) return null;
 

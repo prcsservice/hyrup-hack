@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 interface AuthContextType {
     user: User | null;
     role: 'student' | 'judge' | 'admin';
+    teamId: string | null;
     onboarded: boolean;
     loading: boolean;
     signInWithGoogle: () => Promise<User>;
@@ -24,6 +25,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
     user: null,
     role: 'student',
+    teamId: null,
     onboarded: false,
     loading: true,
     signInWithGoogle: async () => { throw new Error('AuthProvider not initialized'); },
@@ -33,6 +35,7 @@ const AuthContext = createContext<AuthContextType>({
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [role, setRole] = useState<'student' | 'judge' | 'admin'>('student');
+    const [teamId, setTeamId] = useState<string | null>(null);
     const [user, setUser] = useState<User | null>(null);
     const [onboarded, setOnboarded] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -51,12 +54,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     if (docSnap.exists()) {
                         const data = docSnap.data();
                         setRole(data.role || 'student');
+                        setTeamId(data.teamId || null);
                         setOnboarded(!!data.onboarded);
                     }
                     setLoading(false); // Only set loading false after we have the user data
                 });
             } else {
                 setRole('student');
+                setTeamId(null);
                 setOnboarded(false);
                 setLoading(false);
             }
@@ -109,8 +114,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 }
             }
         } else {
-            // Updated Last Login
-            await setDoc(userRef, { lastLogin: serverTimestamp() }, { merge: true });
+            // Updated Last Login - Only if > 1 hour has passed
+            const data = userSnap.data();
+            const lastLogin = data.lastLogin?.toDate();
+            const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+
+            if (!lastLogin || lastLogin < oneHourAgo) {
+                await setDoc(userRef, { lastLogin: serverTimestamp() }, { merge: true });
+            }
         }
         // Note: setLoading(false) is now handled in onSnapshot callback
     };
@@ -167,7 +178,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, role, onboarded, loading, signInWithGoogle, signOut, claimJudgeAccess }}>
+        <AuthContext.Provider value={{ user, role, teamId, onboarded, loading, signInWithGoogle, signOut, claimJudgeAccess }}>
             {children}
         </AuthContext.Provider>
     );

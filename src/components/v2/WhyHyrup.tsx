@@ -152,7 +152,7 @@ export function WhyHyrup() {
                             transition={{ duration: 0.8, delay: 0.6 }}
                         >
                             <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 bg-[#FF4D00]/10 flex items-center justify-center flex-shrink-0">
+                                <div className="w-10 h-10 bg-[#FF4D00]/10 flex items-center justify-center shrink-0">
                                     <Target className="w-5 h-5 text-[#FF4D00]" />
                                 </div>
                                 <div>
@@ -236,8 +236,8 @@ export function WhyHyrup() {
                                 animate={isInView ? { opacity: 1 } : {}}
                                 transition={{ delay: 1.2 }}
                             >
-                                <div className="absolute top-0 right-0 w-full h-px bg-gradient-to-l from-[#FF4D00] to-transparent" />
-                                <div className="absolute top-0 right-0 h-full w-px bg-gradient-to-b from-[#FF4D00] to-transparent" />
+                                <div className="absolute top-0 right-0 w-full h-px bg-linear-to-l from-[#FF4D00] to-transparent" />
+                                <div className="absolute top-0 right-0 h-full w-px bg-linear-to-b from-[#FF4D00] to-transparent" />
                             </motion.div>
 
                             <h4 className="text-white font-mono text-sm uppercase tracking-wider mb-6">
@@ -303,7 +303,7 @@ function BenefitCard({ icon: Icon, title, description, delay, isInView }: Benefi
             whileHover={{ x: 4 }}
         >
             <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-[#FF4D00]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[#FF4D00]/20 transition-colors">
+                <div className="w-10 h-10 bg-[#FF4D00]/10 flex items-center justify-center shrink-0 group-hover:bg-[#FF4D00]/20 transition-colors">
                     <Icon className="w-5 h-5 text-[#FF4D00]" />
                 </div>
                 <div className="flex-1">
